@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use rustls::{ClientConfig, ClientConnection, RootCertStore, StreamOwned};
 
+use scryfall::*;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut root_store = RootCertStore::empty();
     root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
@@ -31,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut response = String::new();
     tls.read_to_string(&mut response)?;
 
-    println!("{response}");
+    //println!("{response}");
 
     Ok(())
 }

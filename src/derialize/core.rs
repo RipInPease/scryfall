@@ -7,14 +7,18 @@ impl Derialize for UUID {
     where Self: Sized
     {
         let mut buf = [0; 1];
-        
         while buf[0] != b'\"' {
             r.read(&mut buf)?;
         }
 
         let mut buf = [0;36];
-        
 
+
+        let mut buf = [0; 1];
+        r.read(&mut buf)?;
+        if buf[0] != b'\"' {
+            return Err(DerializeError::ExpectedToken('\"'));
+        }
         Err(DerializeError::UEO)
     }
 }
