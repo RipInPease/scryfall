@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut tls = StreamOwned::new(conn, tcp);
 
     tls.write_all(
-        b"GET /cards/search?q=t:land+c:W HTTP/1.1\r\n\
+        b"GET /cards/search?q=o:%22loses%20all%20abilities%22 HTTP/1.1\r\n\
         Host: api.scryfall.com\r\n\
         User-Agent: rustls-demo/0.1\r\n\
         Accept: application/json\r\n\
