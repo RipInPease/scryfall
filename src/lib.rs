@@ -121,12 +121,15 @@ pub enum Layout {
 
 /// An object providing URIs to imagery for this face
 pub struct ImageURIs {
-    pub small       : URI,
-    pub normal      : URI,
-    pub large       : URI,
-    pub png         : URI,
-    pub art_crop    : URI,
-    pub border_crop : URI,
+    pub small       : Option<URI>,
+    pub normal      : Option<URI>,
+    pub large       : Option<URI>,
+    pub png         : Option<URI>,
+    pub art_crop    : Option<URI>,
+    pub border_crop : Option<URI>,
+    pub thumb       : Option<URI>,
+    pub grid        : Option<URI>,
+    pub display     : Option<URI>,
 }
 
 /// Multiface cards have a card_faces property 
@@ -279,6 +282,136 @@ pub struct Legalities {
     pub tlr                 : Legality
 }
 
+/// The color a card's border can be
+pub enum BorderColor {
+    Black,
+    White,
+    Borderless,
+    Yellow,
+    Silver,
+    Gold
+}
+
+/// A finish a card can come in
+pub enum Finish {
+    Foil,
+    Nonfoil,
+    Etched
+} 
+
+/// All finishes a card can come in
+pub struct Finishes {
+    pub foil    : bool,
+    pub nonfoil : bool,
+    pub etched  : bool
+}
+
+/// Tracis additional frame artwork applied 
+/// over a particular frame
+pub struct FrameEffects {
+    pub legendary               : bool,    
+    pub miracle                 : bool,
+    pub enchantment             : bool,    
+    pub draft                   : bool,
+    pub devoid                  : bool,
+    pub tombstone               : bool,    
+    pub colorshifted            : bool,        
+    pub inverted                : bool,    
+    pub sunmoondfc              : bool,    
+    pub compasslanddfc          : bool,        
+    pub originpwdfc             : bool,    
+    pub mooneldrazidfc          : bool,        
+    pub waxingandwaningmoondfc  : bool,                
+    pub showcase                : bool,    
+    pub extendedart             : bool,    
+    pub companion               : bool,    
+    pub etched                  : bool,
+    pub snow                    : bool,
+    pub lesson                  : bool,
+    pub shatteredglass          : bool,        
+    pub convertdfc              : bool,    
+    pub fandfc                  : bool,
+    pub upsidedowndfc           : bool,    
+    pub spree                   : bool
+}
+
+/// The frame field tracks the edition of the card 
+/// frame of used for the re/print in question
+pub enum Frame {
+    /// 1993
+    Original,
+    /// 1997
+    UpdatedClassic,
+    /// 2003
+    Modern,
+    /// 2015
+    HoloFoilStamp,
+    /// The frame used on cards from the future
+    Future,
+}
+
+/// All games a card's print is available in
+pub struct Games {
+    pub paper   : bool,
+    pub arena   : bool,
+    pub astral  : bool,
+    pub sega    : bool,
+}
+
+/// The state of this card's image
+pub enum ImageStatus {
+    Missing,
+    Placeholder,
+    Lowres,
+    HighRes
+}
+
+/// Daily price information for this card
+pub struct Prices {
+    pub usd         : Option<String>,
+    pub usd_foil    : Option<String>,
+    pub usd_etched  : Option<String>,
+    pub eur         : Option<String>,
+    pub eur_foil    : Option<String>,
+    pub tix         : Option<String>
+}
+
+/// URIs to this card’s listing on major marketplaces
+pub struct PurchaseURIs {
+    pub tcgplayer       : Option<URI>,
+    pub cardmarket      : Option<URI>,
+    pub cardhoarder     : Option<URI>,
+}
+
+/// A card's rarity
+pub enum Rarity {
+    Common,
+    Uncommon,
+    Rare,
+    Special,
+    Mythic,
+    Bonus
+}
+
+/// URIs to this card’s listing on other 
+/// Magic: The Gathering online resources
+pub struct RelatedURIs {
+    pub tcgplayer_infinite_articles : Option<URI>,
+    pub tcgplayer_infinite_decks    : Option<URI>,
+    pub edhrec                      : Option<URI>
+}
+
+/// The security stamp on this card
+pub enum SecurityStamp {
+    Oval,
+    Triangle,
+    Acorn,
+    Circle,
+    Arena,
+    Heart,
+    None
+}
+
 pub struct List {
     pub has_more    : bool,
     pub data        : Vec<Data>,
@@ -297,11 +430,10 @@ pub enum Data {
     Cards,
 }
 
-
 pub struct Card {
     pub core_fields : CardCore, 
-    pub gameplay    : CardGameplay
-    // pub print_fields: CardPrint
+    pub gameplay    : CardGameplay,
+    pub print_fields: CardPrint
 }
 
 /// Cards have these core properties
@@ -455,4 +587,170 @@ pub struct CardGameplay {
 
     /// The type line of this card
     pub type_line           : String,
+}
+
+/// Cards have the following properties 
+/// unique to their particular re/print
+pub struct CardPrint {
+    /// The name of the illustrator of this card. 
+    /// Newly spoiled cards may not have this field yet
+    pub artist              : Option<String>,
+
+    /// The IDs of the artists that illustrated this card. 
+    /// Newly spoiled cards may not have this field yet
+    pub artist_ids          : Option<Vec<UUID>>,
+
+    /// The lit Unfinity attractions lights on this card, if any
+    pub attraction_lights   : Option<Vec<i32>>,
+
+    /// Whether this card is found in boosters
+    pub booster             : bool,
+
+    /// This card’s [`BorderColor`]
+    pub border_color        : BorderColor,
+
+    /// The Scryfall ID for the card back design 
+    /// present on this card
+    pub card_back_id        : UUID,
+
+    /// This card’s collector number. 
+    /// Note that collector numbers can contain non-numeric 
+    /// characters, such as letters or ★.
+    pub collector_number    : String,
+
+    /// True if you should consider avoiding use of 
+    /// this print downstream
+    pub content_warning     : Option<bool>,
+
+    /// True if this card was only released in a video game
+    pub digital             : bool,
+
+    /// All [`Finishes`] a card can come in
+    pub finishes            : Finishes,
+
+    /// The just-for-fun name printed on the card 
+    /// (such as for Godzilla series cards)
+    pub flavor_name         : Option<String>,
+
+    /// The flavor text, if any
+    pub flavor_text         : Option<String>,
+
+    /// This card’s [`FrameEffects`]
+    pub frame_effects       : FrameEffects,
+
+    /// The card's [`Frame`] layout
+    pub frame               : Frame,
+
+    /// True if this card’s artwork is larger than normal
+    pub full_art            : bool,
+
+    /// A list of [`Games`] that this card print is available in
+    pub games               : Games,
+
+    /// True if this card’s imagery is high resolution
+    pub highres_image       : bool,
+
+    /// A unique identifier for the card artwork that 
+    /// remains consistent across reprints. 
+    /// Newly spoiled cards may not have this field yet
+    pub illustration_id     : Option<UUID>,
+
+    /// The [`ImageStatus`] of this card's image
+    pub image_status        : ImageStatus,
+
+    /// An object providing URIs to imagery for this face, 
+    /// if this is a double-sided card. 
+    /// If this card is not double-sided, 
+    /// then the image_uris property will be part of the 
+    /// parent object instead
+    pub image_uris          : Option<ImageURIs>,
+
+    /// True if this card is oversized
+    pub oversized           : bool,
+
+    /// Daily [`Prices`] information for this card, including
+    pub prices              : Prices,
+
+    /// The localized name printed on this card, if any
+    pub printed_name        : Option<String>,
+
+    /// The localized text printed on this card, if any
+    pub printed_text        : Option<String>,
+
+    /// The localized type line printed on this card, if any
+    pub printed_type_line   : Option<String>,
+
+    /// True if this card is a promotional card
+    pub promo               : bool,
+
+    /// An array of strings describing what categories of 
+    /// promo cards this card falls into.
+    pub promo_types         : Option<Vec<String>>,
+
+    /// [`PurchaseURIs`] to this card’s listing on major marketplaces. 
+    /// Omitted if the card is unpurchaseable
+    pub purchase_uris       : PurchaseURIs,
+
+    /// This card's [`Rarity`]
+    pub rarity              : Rarity,
+
+    /// This card's [`RelatedURIs`] on other 
+    /// Magic: The Gathering online resources
+    pub related_uris        : RelatedURIs,
+
+    /// The date this card was first released,
+    pub released_at         : String,
+
+    /// True if this card is a reprint
+    pub reprint             : bool,
+
+    /// A link to this card’s set on Scryfall’s website
+    pub scryfall_set_uri    : URI,
+
+    /// This card’s full set name
+    pub set_name            : String,
+
+    /// A link to where you can begin paginating this 
+    /// card’s set on the Scryfall API
+    pub set_search_uri      : URI,
+
+    /// The type of set this printing is in
+    pub set_type            : String,
+
+    /// A link to this card’s set object on Scryfall’s API
+    pub set_uri             : URI,
+
+    /// This card’s set code
+    pub set                 : String,
+
+    /// This card’s Set object [`UUID`]
+    pub set_id              : UUID,
+
+    /// True if this card is a Story Spotlight
+    pub story_spotlight     : bool,
+
+    /// True if the card is printed without text
+    pub textless            : bool,
+
+    /// Whether this card is a variation of another printing
+    pub variation           : bool,
+
+    /// The printing ID of the printing this card is a 
+    /// variation of
+    pub variation_of        : Option<UUID>,
+
+    /// The [`SecurityStamp`] on this card
+    pub security_stamp      : SecurityStamp,
+
+    /// This card’s watermark, if any
+    pub watermark           : Option<String>,
+
+    /// The date this card was previewed
+    pub previewed_at        : Option<String>,
+
+    /// A link to the preview for this card
+    pub preview_source_uri  : Option<URI>,
+
+    /// The name of the source that previewed this card
+    pub preview_source      : Option<String>
 }
