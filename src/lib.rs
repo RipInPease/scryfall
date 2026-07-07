@@ -15,6 +15,7 @@ pub trait Derialize {
     where Self: Sized;
 }
 
+#[derive(Debug)]
 pub enum DerializeError {
     IOError(IOError),
     /// Unexpected end of
@@ -24,6 +25,8 @@ pub enum DerializeError {
     /// Name of the field that is missing
     MissingField(String),
     ExpectedToken(char),
+    /// If parsing a value failed
+    ParsingError,
 }
 
 impl From<IOError> for DerializeError {
@@ -38,13 +41,12 @@ impl From<IOError> for DerializeError {
 
 pub struct URI;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct UUID(pub [u8;16]);
 
 impl UUID {
     /// Turns the ascii 1-A to numerical 1-16
     fn ascii_to_hex(val: u8) -> Result<u8, ()> {
-        println!("val: {}", val);
         // ascii value for digits 0-9
         if val >= 48 && val <= 57 {
             Ok(val - 48)
@@ -68,65 +70,27 @@ impl TryFrom<[u8; 36]> for UUID {
 
     fn try_from(value: [u8; 36]) -> Result<Self, Self::Error> {
         let mut bytes = [0;16];
-        let mut i = 0;
-        let mut j = 0;
+        let mut i = 0;  // Index in bytes
+        let mut j = 0;  // Number of chars processed
 
-        // Read until the first dash
-        while j < 8 {
-            let d1 = UUID::ascii_to_hex(value[j])?;
-            let d2 = UUID::ascii_to_hex(value[j+1])?;
+        let mut v1 = 0; // The first char in the byte
+        let mut v2; // The second char in the byte
 
-            let b = d1 * 16 + d2;
-            bytes[i] = b;
-            i += 1;
-            j += 2;
-        }
-        j += 1;
+        for b in value {
+            // 45 is ascii for dash
+            if b == 45 {
+                continue
+            }
 
-        // Read until the second dash
-        while j < 13 {
-            let d1 = UUID::ascii_to_hex(value[j])?;
-            let d2 = UUID::ascii_to_hex(value[j+1])?;
-
-            let b = d1 * 16 + d2;
-            bytes[i] = b;
-            i += 1;
-            j += 2;
-        }
-        j += 1;
-
-        // Read until the third dash
-        while j < 18 {
-            let d1 = UUID::ascii_to_hex(value[j])?;
-            let d2 = UUID::ascii_to_hex(value[j+1])?;
-
-            let b = d1 * 16 + d2;
-            bytes[i] = b;
-            i += 1;
-            j += 2;
-        }
-
-        // Read until the fourth dash
-        while j < 23 {
-            let d1 = UUID::ascii_to_hex(value[j])?;
-            let d2 = UUID::ascii_to_hex(value[j+1])?;
-
-            let b = d1 * 16 + d2;
-            bytes[i] = b;
-            i += 1;
-            j += 2;
-        }
-        j += 1;
-
-        // Read until the end
-        while j < 35 {
-            let d1 = UUID::ascii_to_hex(value[j])?;
-            let d2 = UUID::ascii_to_hex(value[j+1])?;
-
-            let b = d1 * 16 + d2;
-            bytes[i] = b;
-            i += 1;
-            j += 2;
+            if j == 0 {
+                v1 = UUID::ascii_to_hex(b)?;
+                j += 1;
+            } else if j == 1 {
+                v2 = UUID::ascii_to_hex(b)?;
+                bytes[i] = v1 * 16 + v2;
+                i += 1;
+                j = 0;
+            }
         }
 
         Ok(Self(bytes))

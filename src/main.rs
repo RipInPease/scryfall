@@ -7,6 +7,12 @@ use rustls::{ClientConfig, ClientConnection, RootCertStore, StreamOwned};
 use scryfall::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    use std::fs::File;
+    let mut f = File::open("src/test/uuid1.json").unwrap();
+
+    let uuid = UUID::derialize(&mut f).unwrap();
+    println!("{:#?}", uuid);
+
     let mut root_store = RootCertStore::empty();
     root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
 
