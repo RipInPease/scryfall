@@ -39,9 +39,20 @@ impl From<IOError> for DerializeError {
     }
 }
 
-pub struct URI;
+#[derive(Debug, Clone, PartialEq)]
+pub struct URI(String);
+
+impl Derialize for URI {
+    fn derialize<R: Read>(r: &mut R) -> Result<Self, DerializeError>
+    where Self: Sized
+    {
+        let s = String::derialize(r)?;
+        Ok(Self(s))
+    }
+}
 
 #[derive(Debug, Clone, PartialEq)]
+/// Universal unique identifier
 pub struct UUID(pub [u8;16]);
 
 impl UUID {
@@ -80,6 +91,10 @@ impl TryFrom<[u8; 36]> for UUID {
             // 45 is ascii for dash
             if b == 45 {
                 continue
+            }
+
+            if i >= value.len() {
+                return Err(())
             }
 
             if j == 0 {

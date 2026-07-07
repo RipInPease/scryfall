@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use crate::*;
 
 #[test]
@@ -27,4 +29,13 @@ fn uuid_from_file1() {
     ]);
 
     assert_eq!(uuid_from_file, should_be);
+}
+
+
+#[test]
+fn string_from_file() {
+    let mut f = File::open("src/test/string.json").unwrap();
+    let s = String::derialize(&mut f).unwrap();
+
+    assert_eq!(&s, "Hello, World!");
 }
