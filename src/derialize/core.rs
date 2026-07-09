@@ -3,8 +3,8 @@ use crate::derialize::utils;
 
 use std::io::Read;
 
-impl Derialize for String {
-    fn derialize<R: Read>(r: &mut R) -> Result<Self, DerializeError>
+impl Deserialize for String {
+    fn derialize<R: Read>(r: &mut R) -> Result<Self, DeserializeError>
     where Self: Sized
     {
         utils::read_to_quote(r)?;
@@ -23,8 +23,31 @@ impl Derialize for String {
     }
 }
 
-impl Derialize for UUID {
-    fn derialize<R: Read>(r: &mut R) -> Result<Self, DerializeError>
+impl Deserialize for u16 {
+    fn derialize<R: Read>(r: &mut R) -> Result<Self, DeserializeError>
+    where Self: Sized
+    {
+        let first_char = utils::read_to_non_whitespace(r)?;
+        if !first_char.is_ascii_digit() {
+            return Err(DeserializeError::ParsingError)
+        }
+
+        let mut res = (first_char - b'0') as u16;
+        
+        let mut buf = [0];
+        r.read_exact(&mut buf)?;
+        while buf[0].is_ascii_digit() {
+            res *= 10;
+            res += (buf[0] - b'0') as u16;
+            r.read_exact(&mut buf)?;
+        }
+
+        Ok(res)
+    }
+}
+
+impl Deserialize for UUID {
+    fn derialize<R: Read>(r: &mut R) -> Result<Self, DeserializeError>
     where Self: Sized
     {
         // Read until the start of the UUID which is inside quotes
@@ -35,13 +58,13 @@ impl Derialize for UUID {
 
         let uuid = match UUID::try_from(buf) {
             Ok(v) => v,
-            Err(_) => return Err(DerializeError::ParsingError)
+            Err(_) => return Err(DeserializeError::ParsingError)
         };
 
         let mut buf = [0; 1];
         r.read(&mut buf)?;
         if buf[0] != b'\"' {
-            return Err(DerializeError::ExpectedToken('\"'));
+            return Err(DeserializeError::ExpectedToken('\"'));
         }
 
         Ok(uuid)

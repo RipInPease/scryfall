@@ -10,13 +10,13 @@ pub(crate) mod derialize;
 use std::io::{Error as IOError, ErrorKind, Read};
 
 /// Only JSON becuase fuck you
-pub trait Derialize {
-    fn derialize<R: Read>(r: &mut R) -> Result<Self, DerializeError>
+pub trait Deserialize {
+    fn derialize<R: Read>(r: &mut R) -> Result<Self, DeserializeError>
     where Self: Sized;
 }
 
 #[derive(Debug)]
-pub enum DerializeError {
+pub enum DeserializeError {
     IOError(IOError),
     /// Unexpected end of
     UEO,
@@ -29,7 +29,7 @@ pub enum DerializeError {
     ParsingError,
 }
 
-impl From<IOError> for DerializeError {
+impl From<IOError> for DeserializeError {
     fn from(value: IOError) -> Self {
         if value.kind() == ErrorKind::UnexpectedEof {
             Self::UEO
@@ -42,8 +42,8 @@ impl From<IOError> for DerializeError {
 #[derive(Debug, Clone, PartialEq)]
 pub struct URI(String);
 
-impl Derialize for URI {
-    fn derialize<R: Read>(r: &mut R) -> Result<Self, DerializeError>
+impl Deserialize for URI {
+    fn derialize<R: Read>(r: &mut R) -> Result<Self, DeserializeError>
     where Self: Sized
     {
         let s = String::derialize(r)?;
@@ -59,15 +59,15 @@ impl UUID {
     /// Turns the ascii 1-A to numerical 1-16
     fn ascii_to_hex(val: u8) -> Result<u8, ()> {
         // ascii value for digits 0-9
-        if val >= 48 && val <= 57 {
+        if val >= b'0' && val <= b'9' {
             Ok(val - 48)
         } 
         // ascii value for digits A-F
-        else if val >= 65 && val <= 70 {
+        else if val >= b'A' && val <= b'F' {
             Ok(val - 55)
         }
         // ascii value for digits a-f
-        else if val >= 97 && val <= 102 {
+        else if val >= b'a' && val <= b'f' {
             Ok(val - 87)
         } else {
             Err(())
@@ -88,8 +88,8 @@ impl TryFrom<[u8; 36]> for UUID {
         let mut v2; // The second char in the byte
 
         for b in value {
-            // 45 is ascii for dash
-            if b == 45 {
+            // Skip the dashes
+            if b == b'-' {
                 continue
             }
 
