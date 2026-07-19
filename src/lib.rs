@@ -7,49 +7,9 @@ pub mod card;
 pub(crate) mod derialize;
 
 
-use std::io::{Error as IOError, ErrorKind, Read};
-
-/// Only JSON becuase fuck you
-pub trait Deserialize {
-    fn derialize<R: Read>(r: &mut R) -> Result<Self, DeserializeError>
-    where Self: Sized;
-}
-
-#[derive(Debug)]
-pub enum DeserializeError {
-    IOError(IOError),
-    /// Unexpected end of
-    UEO,
-    /// Name of the unknown field
-    UnknownField(String),
-    /// Name of the field that is missing
-    MissingField(String),
-    ExpectedToken(char),
-    /// If parsing a value failed
-    ParsingError,
-}
-
-impl From<IOError> for DeserializeError {
-    fn from(value: IOError) -> Self {
-        if value.kind() == ErrorKind::UnexpectedEof {
-            Self::UEO
-        } else {
-            Self::IOError(value)
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct URI(String);
 
-impl Deserialize for URI {
-    fn derialize<R: Read>(r: &mut R) -> Result<Self, DeserializeError>
-    where Self: Sized
-    {
-        let s = String::derialize(r)?;
-        Ok(Self(s))
-    }
-}
 
 #[derive(Debug, Clone, PartialEq)]
 /// Universal unique identifier
