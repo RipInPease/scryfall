@@ -15,7 +15,7 @@ pub enum DesValue {
 #[derive(Debug, PartialEq)]
 pub enum ParseError {
     ExpectedToken(char),
-    UnexpectedTopen(char)
+    UnexpectedToken(char)
 }
 
 /// Will try to parse an object.
@@ -28,11 +28,38 @@ pub fn parse_string(s: String) -> Result<DesValue, ParseError> {
 /// Will try to parse an object.
 /// If there was no error, will return [`DesValue::Object`]
 fn parse_object(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
-    let mut i = 0;
-    let mut chars = s[i..].char_indices();
+    let mut fields: Vec<DesValue> = vec![];
+    let mut chars = s[*i..].char_indices();
 
+    if first_none_whitespace(s, i) != Some('{') {
+        return Err(ParseError::ExpectedToken('{'));
+    }
+
+    loop {
+        match first_none_whitespace(s, i) {
+            None => return Err(ParseError::ExpectedToken('}')),
+            Some(c) => {
+                if c != '}' {
+                    
+                }
+            }
+        }
+    }
     
     Err(ParseError::ExpectedToken('{'))
+}
+
+fn first_none_whitespace(s: &str, i: &mut usize) -> Option<char> {
+    let mut chars = s[*i..].char_indices();
+    loop {
+        match chars.next() {
+            None => return None,
+            Some((offset, c)) => {
+                *i += offset + c.len_utf8();
+                return Some(c)
+            }
+        };
+    }
 }
 
 /// Reads a Field name
@@ -46,7 +73,7 @@ fn read_field_name(s: &str, i: &mut usize) -> Result<String, ParseError> {
 
             Some((offset, c)) => {
                 if !c.is_whitespace() && c != '\"' {
-                    return Err(ParseError::UnexpectedTopen(c))
+                    return Err(ParseError::UnexpectedToken(c))
                 } else if c == '\"' {
                     *i += offset + c.len_utf8();
                     break;
