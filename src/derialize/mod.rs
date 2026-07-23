@@ -75,9 +75,6 @@ fn read_string_in_quotes(s: &str, i: &mut usize) -> Result<String, ParseError> {
             }
         }
     }
-
-
-    Err(ParseError::ExpectedToken('\"'))
 }
 
 /// Reads a string not enclosed in quotes. This reads until first whitespace after chars, '}' or ','
