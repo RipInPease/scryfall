@@ -31,6 +31,7 @@ fn parse_object(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
     let mut i = 0;
     let mut chars = s[i..].char_indices();
 
+    
     Err(ParseError::ExpectedToken('{'))
 }
 
