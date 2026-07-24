@@ -1,6 +1,11 @@
 #[cfg(test)]
 mod test;
 
+pub trait Deserialize {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized;
+}
+
 /// Deserialized value from JSON
 #[derive(Debug, PartialEq)]
 pub enum DesValue {
@@ -60,7 +65,10 @@ pub enum ParseError {
     ValueExpected,
 
     /// Where a value is passed, but we don't know what the fuck it is
-    UnkownVal(String)
+    UnkownVal(String),
+
+    /// Where the wrong type is passed as the value
+    MismatchedType
 }
 
 /// Will try to parse an object.

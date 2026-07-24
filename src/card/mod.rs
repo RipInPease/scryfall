@@ -1,6 +1,10 @@
 use crate::*;
 
+/// Where I implement Deseriliaze
+mod deserialize_impls;
+
 /// Color of mana
+#[derive(Debug, PartialEq)]
 pub enum Color {
     White,
     Blue,
@@ -20,6 +24,7 @@ pub struct ManaValue {
     pub colorless   : Option<u8>
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Language {
     /// English
     EN,
@@ -56,7 +61,9 @@ pub enum Language {
     /// Phyrexian
     PH,
     /// Quenya
-    QYA
+    QYA,
+    /// Dwarvish
+    DW
 }
 
 /// The layout property categorizes the arrangement of card parts, 
