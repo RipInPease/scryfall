@@ -3,8 +3,8 @@ mod test;
 
 pub mod card;
 
-/// Derialize all types here
-pub(crate) mod derialize;
+/// Related to deserializing JSON
+pub mod deserialize;
 
 
 #[derive(Debug, Clone, PartialEq)]
