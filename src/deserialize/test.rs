@@ -87,7 +87,7 @@ fn read_field_name_success3() {
 }
 
 #[test]
-fn read_string_out_quotes_success1() {
+fn read_string_out_quotes_1() {
     let s = "false";
 
     let mut i = 0;
@@ -96,7 +96,7 @@ fn read_string_out_quotes_success1() {
 }
 
 #[test]
-fn read_string_out_quotes_success2() {
+fn read_string_out_quotes_2() {
     let s = "false,";
 
     let mut i = 0;
@@ -105,7 +105,7 @@ fn read_string_out_quotes_success2() {
 }
 
 #[test]
-fn read_string_out_quotes_success3() {
+fn read_string_out_quotes_3() {
     let s = "   123.5   ";
 
     let mut i = 0;
@@ -114,7 +114,7 @@ fn read_string_out_quotes_success3() {
 }
 
 #[test]
-fn read_string_out_quotes_success4() {
+fn read_string_out_quotes_4() {
     let s = "";
 
     let mut i = 0;
@@ -123,7 +123,7 @@ fn read_string_out_quotes_success4() {
 }
 
 #[test]
-fn read_string_out_quotes_success5() {
+fn read_string_out_quotes_5() {
     let s = "                     ";
 
     let mut i = 0;
@@ -132,7 +132,7 @@ fn read_string_out_quotes_success5() {
 }
 
 #[test]
-fn read_string_out_quotes_success6() {
+fn read_string_out_quotes_6() {
     let s = "   abc   def   ";
 
     let mut i = 0;
@@ -143,7 +143,7 @@ fn read_string_out_quotes_success6() {
 }
 
 #[test]
-fn read_string_out_quotes_success7() {
+fn read_string_out_quotes_7() {
     let s = "abc, def";
 
     let mut i = 0;
@@ -155,6 +155,18 @@ fn read_string_out_quotes_success7() {
     i += 1;
     let res2 = read_string_out_quotes(&s, &mut i);
     assert_eq!(String::from("def"), res2);
+}
+
+#[test]
+fn read_string_out_quotes_8() {
+    let s = "    ";
+
+    let mut i = 0;
+    let res1 = read_string_out_quotes(&s, &mut i);
+    assert_eq!(String::from(""), res1);
+    
+    let mut chars = s[i..].char_indices();
+    assert_eq!(chars.next(), None);
 }
 
 #[test]

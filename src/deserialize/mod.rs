@@ -70,6 +70,7 @@ pub enum ParseError {
 pub fn parse_json_string(s: String) -> Result<DesValue, (usize, ParseError)> {
     let mut i = 0;
     let res = read_object(&s, &mut i);
+
     if res.is_err() {
         return Err((i, res.err().unwrap()))
     } else {
@@ -153,18 +154,15 @@ fn read_field_name(s: &str, i: &mut usize) -> Result<String, ParseError> {
 fn read_string_in_quotes(s: &str, i: &mut usize) -> Result<String, ParseError> {
     let mut chars = s[*i..].char_indices();
 
-    loop {
-        match chars.next() {
-            None              => return Err(ParseError::ExpectedToken('\"')),
-            Some((offset, c)) => {
-                if c == '\"' {
-                    let s = s[*i..*i+offset].to_string();
-                    *i += offset + c.len_utf8();
-                    return Ok(s)
-                }
-            }
+    while let Some((offset, c)) = chars.next() {
+        if c == '\"' {
+            let s = s[*i..*i+offset].to_string();
+            *i += offset + c.len_utf8();
+            return Ok(s)
         }
     }
+
+    return Err(ParseError::ExpectedToken('\"'));
 }
 
 /// Reads a string not enclosed in quotes. This reads until first whitespace after chars, '}', ',' or ']'
@@ -173,35 +171,30 @@ fn read_string_out_quotes(s: &str, i: &mut usize) -> String {
     let mut first_char = false;
     let mut start = *i;
 
-    loop {
-        match chars.next() {
-            None => {
-                let res = s[start..].to_string();
-                *i = start;
-                return res
-            },
+    while let Some((offset, c)) = chars.next() {
+        if c.is_whitespace() && !first_char {
+            start += c.len_utf8();
+        } 
+        else if c.is_whitespace() && first_char {
+            let res = s[start..*i+offset].to_string();
+            *i += offset;
+            return res;
+        } 
+        else if !c.is_whitespace() {
+            first_char = true;
+        }
 
-            Some((offset, c)) => {
-                if c.is_whitespace() && !first_char {
-                    start += c.len_utf8();
-                } 
-                else if c.is_whitespace() && first_char {
-                    let res = s[start..*i+offset].to_string();
-                    *i += offset;
-                    return res;
-                } 
-                else if !c.is_whitespace() {
-                    first_char = true;
-                }
-
-                if c == ',' || c == '}' || c == ']' {
-                    let res = s[start..*i+offset].to_string();
-                    *i += offset;
-                    return res;
-                }
-            }
+        if c == ',' || c == '}' || c == ']' {
+            let res = s[start..*i+offset].to_string();
+            *i += offset;
+            return res;
         }
     }
+
+    let res = s[start..].to_string();
+
+    *i = s.len();
+    return res
 }
 
 
@@ -260,12 +253,11 @@ fn read_field_val(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
 /// If there was no error, will return [`DesValue::Bool`]
 fn read_bool(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
     let s = read_string_out_quotes(s, i).to_lowercase();
-    if &s == "true" {
-        return Ok(DesValue::Bool(true))
-    } else if &s == "false" {
-        return Ok(DesValue::Bool(false))
-    } else {
-        return Err(ParseError::UnkownVal(s))
+
+    match &s[..] {
+        "true"  => Ok(DesValue::Bool(true)),
+        "false" => Ok(DesValue::Bool(false)),
+        _       => Err(ParseError::UnkownVal(s))
     }
 }
 
@@ -274,6 +266,7 @@ fn read_bool(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
 fn read_num(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
     let res = read_string_out_quotes(s, i);
     let mut decimal = false;
+    
     for c in res.chars() {
         if !c.is_numeric() {
             if c == '.' && !decimal {
@@ -291,6 +284,7 @@ fn read_num(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
 /// If there was no error, will return [`DesValue::Null`]
 fn read_null(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
     let s = read_string_out_quotes(s, i).to_lowercase();
+    
     if &s == "null" {
         return Ok(DesValue::Null)
     }  else {
