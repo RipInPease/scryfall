@@ -152,17 +152,46 @@ fn read_field_name(s: &str, i: &mut usize) -> Result<String, ParseError> {
 
 // Assumes you are already inside quotes
 fn read_string_in_quotes(s: &str, i: &mut usize) -> Result<String, ParseError> {
+    let mut res = String::new();
     let mut chars = s[*i..].char_indices();
 
+    // Are we currently readind an escape char?
+    let mut escape = false;
+
     while let Some((offset, c)) = chars.next() {
-        if c == '\"' {
-            let s = s[*i..*i+offset].to_string();
+        if escape {
+            match escape_char(c) {
+                None    => return Err(ParseError::UnexpectedToken(c)),
+                Some(c) => res.push(c)
+            }
+            
+            escape = false;
+        } else if c == '\\' {
+            escape = true
+        } else if c == '\"' {
             *i += offset + c.len_utf8();
-            return Ok(s)
+            return Ok(res)
+        } else {
+            res.push(c);
         }
     }
 
     return Err(ParseError::ExpectedToken('\"'));
+}
+
+/// Returns [`None`] if this is an unkown escape char
+fn escape_char(c: char) -> Option<char> {
+    match c {
+        '\'' => Some('\''),
+        '\"' => Some('\"'),
+        '\\' => Some('\\'),
+        'n'  => Some('\n'),
+        'r'  => Some('\r'),
+        't'  => Some('\t'),
+        'b'  => Some('\x08'),
+        'f'  => Some('\x0C'),
+        _    => None,
+    }
 }
 
 /// Reads a string not enclosed in quotes. This reads until first whitespace after chars, '}', ',' or ']'
