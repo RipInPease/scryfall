@@ -141,8 +141,6 @@ fn read_field(s: &str, i: &mut usize) -> Result<(String, DesValue), ParseError> 
 
 /// Reads a Field name
 fn read_field_name(s: &str, i: &mut usize) -> Result<String, ParseError> {
-    let mut chars = s[*i..].char_indices();
-
     if first_none_whitespace(s, i) != Some('\"') {
         return Err(ParseError::ExpectedToken('\"'))
     }
