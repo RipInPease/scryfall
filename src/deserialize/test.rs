@@ -242,6 +242,30 @@ fn read_field_num3() {
 }
 
 #[test]
+fn read_field_num4() {
+    let s = "\"FieldName\": -123";
+    let mut i = 0;
+    let res = read_field(s, &mut i).unwrap();
+
+    assert_eq!(
+        res,
+        (String::from("FieldName"), DesValue::from(-123))
+    )
+}
+
+#[test]
+fn read_field_num5() {
+    let s = "\"FieldName\": -12-3";
+    let mut i = 0;
+    let res = read_field(s, &mut i);
+
+    assert_eq!(
+        res,
+        Err(ParseError::UnexpectedToken('-'))
+    )
+}
+
+#[test]
 fn read_arr_1() {
     let s = "[ 1234 ]";
     let mut i = 0;

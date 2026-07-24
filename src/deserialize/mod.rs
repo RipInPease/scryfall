@@ -249,7 +249,7 @@ fn read_field_val(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
         },
 
         // An int or float
-        c if c.is_numeric() => {
+        c if c.is_numeric() || c == '-' => {
             *i -= first_char.len_utf8();
             return read_num(s, i);
         },
@@ -295,15 +295,21 @@ fn read_bool(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
 fn read_num(s: &str, i: &mut usize) -> Result<DesValue, ParseError> {
     let res = read_string_out_quotes(s, i);
     let mut decimal = false;
+    let mut first_char = false;
     
     for c in res.chars() {
         if !c.is_numeric() {
-            if c == '.' && !decimal {
+            if c == '-' && !first_char {
+                first_char = true;
+                continue;
+            } else if c == '.' && !decimal {
                 decimal = true
             } else {
                 return Err(ParseError::UnexpectedToken(c));
             }
         }
+
+        first_char = true
     }
 
     Ok(DesValue::Num(res))
