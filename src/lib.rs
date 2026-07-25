@@ -36,10 +36,15 @@ impl UUID {
 }
 
 /// Where this is an array of 36 chars
-impl TryFrom<[u8; 36]> for UUID {
+impl TryFrom<&str> for UUID {
     type Error = ();
 
-    fn try_from(value: [u8; 36]) -> Result<Self, Self::Error> {
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        if value.len() != 36 {
+            return Err(())
+        }
+
+        let value = value.as_bytes();
         let mut bytes = [0;16];
         let mut i = 0;  // Index in bytes
         let mut j = 0;  // Number of chars processed
@@ -49,7 +54,7 @@ impl TryFrom<[u8; 36]> for UUID {
 
         for b in value {
             // Skip the dashes
-            if b == b'-' {
+            if *b == b'-' {
                 continue
             }
 
@@ -58,10 +63,10 @@ impl TryFrom<[u8; 36]> for UUID {
             }
 
             if j == 0 {
-                v1 = UUID::ascii_to_hex(b)?;
+                v1 = UUID::ascii_to_hex(*b)?;
                 j += 1;
             } else if j == 1 {
-                v2 = UUID::ascii_to_hex(b)?;
+                v2 = UUID::ascii_to_hex(*b)?;
                 bytes[i] = v1 * 16 + v2;
                 i += 1;
                 j = 0;
@@ -89,4 +94,42 @@ pub struct List {
 /// The different kinds of data a [`List`] can contain
 pub enum Data {
     Cards(card::Card),
+}
+
+
+use deserialize::{DesValue, Deserialize, ParseError};
+
+impl Deserialize for URI {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        match tokens {
+            DesValue::String(s) => Ok(Self(s)),
+            _ => Err(ParseError::MismatchedType)
+        }
+    }
+}
+
+impl Deserialize for UUID {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        match tokens {
+            DesValue::String(s) => {
+                if s.len() != 36 {
+                    Err(ParseError::UnkownVal(s))
+                } else {
+                    let uuid = UUID::try_from(&s[..]);
+                    
+                    if uuid.is_err() {
+                        Err(ParseError::UnkownVal(s))
+                    } else {
+                        let uuid = uuid.unwrap();
+                        Ok(uuid)
+                    }
+                }
+            },
+            _ => Err(ParseError::MismatchedType)
+        }
+    }
 }

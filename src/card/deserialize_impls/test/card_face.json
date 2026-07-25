@@ -1,0 +1,24 @@
+{
+  "object": "card_face",
+  "name": "Ajani, Nacatl Pariah",
+  "mana_cost": "{1}{W}",
+  "type_line": "Legendary Creature — Cat Warrior",
+  "oracle_text": "When Ajani enters, create a 2/1 white Cat Warrior creature token.\nWhenever one or more other Cats you control die, you may exile Ajani, then return him to the battlefield transformed under his owner's control.",
+  "colors": [
+    "W"
+  ],
+  "power": "1",
+  "toughness": "2",
+  "flavor_text": "His pride denied him; his brother did not.",
+  "artist": "Chris Rallis",
+  "artist_id": "a8e7b854-b15a-421a-b66d-6e68187ae285",
+  "illustration_id": "3dff950b-68c7-4b2d-a8e5-419b140d897e",
+  "image_uris": {
+    "small": "https://cards.scryfall.io/small/front/0/d/0d16e8e0-31b2-4389-afd6-783c501f6fa0.jpg?1783911238",
+    "normal": "https://cards.scryfall.io/normal/front/0/d/0d16e8e0-31b2-4389-afd6-783c501f6fa0.jpg?1783911238",
+    "large": "https://cards.scryfall.io/large/front/0/d/0d16e8e0-31b2-4389-afd6-783c501f6fa0.jpg?1783911238",
+    "png": "https://cards.scryfall.io/png/front/0/d/0d16e8e0-31b2-4389-afd6-783c501f6fa0.png?1783911238",
+    "art_crop": "https://cards.scryfall.io/art_crop/front/0/d/0d16e8e0-31b2-4389-afd6-783c501f6fa0.jpg?1783911238",
+    "border_crop": "https://cards.scryfall.io/border_crop/front/0/d/0d16e8e0-31b2-4389-afd6-783c501f6fa0.jpg?1783911238"
+  }
+}

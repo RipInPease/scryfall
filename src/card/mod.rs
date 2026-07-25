@@ -71,6 +71,7 @@ pub enum Language {
 /// 
 /// The layout can be used to programmatically determine 
 /// which other properties on a card you can expect
+#[derive(Debug, PartialEq)]
 pub enum Layout {
     /// A standard Magic card with one face
     Normal,
@@ -125,16 +126,19 @@ pub enum Layout {
 }
 
 /// An object providing URIs to imagery for this face
+#[derive(Debug, PartialEq)]
 pub struct ImageURIs {
+    pub png         : Option<URI>,
     pub small       : Option<URI>,
     pub normal      : Option<URI>,
     pub large       : Option<URI>,
-    pub png         : Option<URI>,
-    pub art_crop    : Option<URI>,
     pub border_crop : Option<URI>,
+    pub art_crop    : Option<URI>,
     pub thumb       : Option<URI>,
     pub grid        : Option<URI>,
     pub display     : Option<URI>,
+    pub crop        : Option<URI>,
+    pub art         : Option<URI>
 }
 
 /// Multiface cards have a card_faces property 
@@ -176,7 +180,7 @@ pub struct CardFace {
     /// If this card is not double-sided, 
     /// then the image_uris property will be part of the 
     /// parent object instead
-    pub image_uruis     : Option<ImageURIs>,
+    pub image_uris     : Option<ImageURIs>,
 
     /// The [`Layout`] of this card face, 
     /// if the card is reversible

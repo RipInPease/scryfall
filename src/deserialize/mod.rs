@@ -4,6 +4,21 @@ mod test;
 pub trait Deserialize {
     fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
     where Self: Sized;
+
+    fn deserialize_array(tokens: DesValue) -> Result<Vec<Self>, ParseError>
+    where Self: Sized
+    {
+        if !tokens.is_array() {
+            return Err(ParseError::MismatchedType)
+        }
+
+        tokens
+            .unwrap_array()
+            .into_iter()
+            .map(|x| Self::deserialize(x))
+            .collect()
+
+    }
 }
 
 /// Deserialized value from JSON
@@ -19,6 +34,108 @@ pub enum DesValue {
 
     /// Equivilant to Rust's [`Option::None`]
     Null
+}
+
+impl DesValue {
+    /// Returns `true` if it is equal to [`DesValue::String`]
+    pub fn is_string(&self) -> bool {
+        match self {
+            Self::String(_) => true,
+            _ => false
+        }
+    }
+
+    /// Returns `true` if it is equal to [`DesValue::Num`]
+    pub fn is_num(&self) -> bool {
+        match self {
+            Self::Num(_) => true,
+            _ => false
+        }
+    }
+
+    /// Returns `true` if it is equal to [`DesValue::Bool`]
+    pub fn is_bool(&self) -> bool {
+        match self {
+            Self::Bool(_) => true,
+            _ => false
+        }
+    }
+
+    /// Returns `true` if it is equal to [`DesValue::Null`]
+    pub fn is_null(&self) -> bool {
+        match self {
+            Self::Null => true,
+            _ => false
+        }
+    }
+
+    /// Returns `true` if it is equal to [`DesValue::Array`]
+    pub fn is_array(&self) -> bool {
+        match self {
+            Self::Array(_) => true,
+            _ => false
+        }
+    }
+
+    /// Returns `true` if it is equal to [`DesValue::Object`]
+    pub fn is_object(&self) -> bool {
+        match self {
+            Self::Object(_) => true,
+            _ => false
+        }
+    }
+
+    /// Returns the contained [`DesValue::Object`], consuming the `self` value
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the value is not equal [`DesValue::Object`]
+    /// 
+    pub fn unwrap_object(self) -> Box<[(String, DesValue)]> {
+        match self {
+            Self::Object(v) => v,
+            _ => panic!("Called unwarp_object on non-object value")
+        }
+    }
+
+    /// Returns the contained [`DesValue::String`], consuming the `self` value
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the value is not equal [`DesValue::String`]
+    /// 
+    pub fn unwrap_string(self) -> String {
+        match self {
+            Self::String(s) => s,
+            _ => panic!("Called unwrap_string on non-string value")
+        }
+    }
+
+    /// Returns the contained [`DesValue::Num`], consuming the `self` value
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the value is not equal [`DesValue::Num`]
+    /// 
+    pub fn unwrap_num(self) -> String {
+        match self {
+            Self::Num(s) => s,
+            _ => panic!("Called unwrap_num on non-num value")
+        }
+    }
+
+    /// Returns the contained [`DesValue::Array`], consuming the `self` value
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the value is not equal [`DesValue::Array`]
+    /// 
+    pub fn unwrap_array(self) -> Box<[DesValue]> {
+        match self {
+            Self::Array(a) => a,
+            _ => panic!("Called unwrap_array on non-array value")
+        }
+    }
 }
 
 impl From<String> for DesValue {
@@ -68,7 +185,7 @@ pub enum ParseError {
     UnkownVal(String),
 
     /// Where the wrong type is passed as the value
-    MismatchedType
+    MismatchedType,
 }
 
 /// Will try to parse an object.

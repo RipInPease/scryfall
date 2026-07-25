@@ -430,7 +430,5 @@ fn read_object_4() {
     let s = std::fs::read_to_string("src/deserialize/big_test.json").unwrap();
     println!("{}", &s[4069..4069+100]);
     let res = parse_json_string(s);
-    let dbg = format!("{:#?}", res);
-    std::fs::write("src/deserialize/output.txt", &dbg.as_bytes()).unwrap();
     assert!(res.is_ok())
 }
