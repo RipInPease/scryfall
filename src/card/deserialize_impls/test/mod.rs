@@ -429,3 +429,129 @@ fn games_1() {
         assert_eq!(finishes, Ok(should));
     }
 }
+
+#[test]
+fn image_status_1() {
+    let missing = DesValue::String(String::from("missing"));
+    let placeholder = DesValue::String(String::from("placeholder"));
+    let lowres = DesValue::String(String::from("lowres"));
+    let highres_scan = DesValue::String(String::from("highres_scan"));
+    let fail = DesValue::String(String::from("fail"));
+
+    let missing = ImageStatus::deserialize(missing);
+    let placeholder = ImageStatus::deserialize(placeholder);
+    let lowres = ImageStatus::deserialize(lowres);
+    let highres_scan = ImageStatus::deserialize(highres_scan);
+    let fail = ImageStatus::deserialize(fail);
+
+    assert_eq!(missing, Ok(ImageStatus::Missing));
+    assert_eq!(placeholder, Ok(ImageStatus::Placeholder));
+    assert_eq!(lowres, Ok(ImageStatus::Lowres));
+    assert_eq!(highres_scan, Ok(ImageStatus::HighRes));
+    assert_eq!(fail, Err(ParseError::UnkownVal(String::from("fail"))));    
+}
+
+#[test]
+fn prices_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/prices.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let prices = Prices::deserialize(tokens);
+
+    let should = Prices {
+        usd: Some(String::from("0.66")),
+        usd_foil: Some(String::from("1.34")),
+        usd_etched: None,
+        eur: Some(String::from("0.64")),
+        eur_foil: Some(String::from("1.16")),
+        tix: Some(String::from("0.02")),
+    };
+
+    assert_eq!(prices, Ok(should));
+}
+
+#[test]
+fn purchase_uris_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/purchase_uris.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let prices = PurchaseURIs::deserialize(tokens);
+
+    let should = PurchaseURIs {
+        tcgplayer: URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&u=https%3A%2F%2Fwww.tcgplayer.com%2Fproduct%2F134858%3Fpage%3D1")),
+        cardmarket: URI(String::from("https://www.cardmarket.com/en/Magic/Products?idProduct=298462&referrer=scryfall&utm_campaign=card_prices&utm_medium=text&utm_source=scryfall")),
+        cardhoarder: URI(String::from("https://www.cardhoarder.com/cards/64488?affiliate_id=scryfall&ref=card-profile&utm_campaign=affiliate&utm_medium=card&utm_source=scryfall")),
+    };
+
+    assert_eq!(prices, Ok(should));
+}
+
+#[test]
+fn rarity_1() {
+    let common = DesValue::String(String::from("common"));
+    let uncommon = DesValue::String(String::from("uncommon"));
+    let rare = DesValue::String(String::from("rare"));
+    let special = DesValue::String(String::from("special"));
+    let mythic = DesValue::String(String::from("mythic"));
+    let bonus = DesValue::String(String::from("bonus"));
+    let fail = DesValue::String(String::from("fail"));
+
+    let common = Rarity::deserialize(common);
+    let uncommon = Rarity::deserialize(uncommon);
+    let rare = Rarity::deserialize(rare);
+    let special = Rarity::deserialize(special);
+    let mythic = Rarity::deserialize(mythic);
+    let bonus = Rarity::deserialize(bonus);
+    let fail = Rarity::deserialize(fail);
+
+    assert_eq!(common, Ok(Rarity::Common));
+    assert_eq!(uncommon, Ok(Rarity::Uncommon));
+    assert_eq!(rare, Ok(Rarity::Rare));
+    assert_eq!(special, Ok(Rarity::Special));
+    assert_eq!(mythic, Ok(Rarity::Mythic));
+    assert_eq!(bonus, Ok(Rarity::Bonus));
+    assert_eq!(fail, Err(ParseError::UnkownVal(String::from("fail"))));
+}
+
+#[test]
+fn related_uris_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/related_uris.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let prices = RelatedURIs::deserialize(tokens);
+
+    let should = RelatedURIs {
+        tcgplayer_infinite_articles: URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DGalion%252C%2BElvenking%2527s%2BButler")),
+        tcgplayer_infinite_decks: URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DGalion%252C%2BElvenking%2527s%2BButler")),
+        edhrec: URI(String::from("https://edhrec.com/route/?cc=Galion%2C+Elvenking%27s+Butler")),
+    };
+
+    assert_eq!(prices, Ok(should));
+}
+
+#[test]
+fn security_stamp_1() {
+    let oval = DesValue::String(String::from("oval"));
+    let triangle = DesValue::String(String::from("triangle"));
+    let acorn = DesValue::String(String::from("acorn"));
+    let circle = DesValue::String(String::from("circle"));
+    let arena = DesValue::String(String::from("arena"));
+    let heart = DesValue::String(String::from("heart"));
+    let fail = DesValue::String(String::from("fail"));
+
+    let oval = SecurityStamp::deserialize(oval);
+    let triangle = SecurityStamp::deserialize(triangle);
+    let acorn = SecurityStamp::deserialize(acorn);
+    let circle = SecurityStamp::deserialize(circle);
+    let arena = SecurityStamp::deserialize(arena);
+    let heart = SecurityStamp::deserialize(heart);
+    let fail = SecurityStamp::deserialize(fail);
+
+    assert_eq!(oval, Ok(SecurityStamp::Oval));
+    assert_eq!(triangle, Ok(SecurityStamp::Triangle));
+    assert_eq!(acorn, Ok(SecurityStamp::Acorn));
+    assert_eq!(circle, Ok(SecurityStamp::Circle));
+    assert_eq!(arena, Ok(SecurityStamp::Arena));
+    assert_eq!(heart, Ok(SecurityStamp::Heart));
+    assert_eq!(fail, Err(ParseError::UnkownVal(String::from("fail"))));
+}

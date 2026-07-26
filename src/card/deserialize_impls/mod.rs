@@ -894,3 +894,283 @@ impl Deserialize for Games {
         })
     }
 }
+
+
+impl Deserialize for ImageStatus {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        if !tokens.is_string() {
+            return Err(ParseError::MismatchedType)
+        }
+
+        let s = tokens.unwrap_string();
+
+        match &s[..] {
+            "missing"      => Ok(Self::Missing),
+            "placeholder"  => Ok(Self::Placeholder),
+            "lowres"       => Ok(Self::Lowres),
+            "highres_scan" => Ok(Self::HighRes),
+            _              => Err(ParseError::UnkownVal(s))
+        }
+    }
+}
+
+
+impl Deserialize for Prices {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        if !tokens.is_object() {
+            return Err(ParseError::MismatchedType)
+        }
+
+        let fields = tokens.unwrap_object();
+
+        let mut usd:        Option<Option<String>> = None;
+        let mut usd_foil:   Option<Option<String>> = None;
+        let mut usd_etched: Option<Option<String>> = None;
+        let mut eur:        Option<Option<String>> = None;
+        let mut eur_foil:   Option<Option<String>> = None;
+        let mut tix:        Option<Option<String>> = None;
+
+        for (field, val) in fields {
+            match &field[..] {
+                "usd" => {
+                    if usd.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else if val.is_null() {
+                        usd = Some(None)
+                    } else if val.is_string() {
+                        let s = val.unwrap_string();
+                        usd = Some(Some(s));
+                    } else {
+                        return Err(ParseError::MismatchedType)
+                    }
+                }
+                "usd_foil" => {
+                    if usd_foil.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else if val.is_null() {
+                        usd_foil = Some(None)
+                    } else if val.is_string() {
+                        let s = val.unwrap_string();
+                        usd_foil = Some(Some(s));
+                    } else {
+                        return Err(ParseError::MismatchedType)
+                    }
+                }
+                "usd_etched" => {
+                    if usd_etched.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else if val.is_null() {
+                        usd_etched = Some(None)
+                    } else if val.is_string() {
+                        let s = val.unwrap_string();
+                        usd_etched = Some(Some(s));
+                    } else {
+                        return Err(ParseError::MismatchedType)
+                    }
+                }
+                "eur" => {
+                    if eur.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else if val.is_null() {
+                        eur = Some(None)
+                    } else if val.is_string() {
+                        let s = val.unwrap_string();
+                        eur = Some(Some(s));
+                    } else {
+                        return Err(ParseError::MismatchedType)
+                    }
+                }
+                "eur_foil" => {
+                    if eur_foil.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else if val.is_null() {
+                        eur_foil = Some(None)
+                    } else if val.is_string() {
+                        let s = val.unwrap_string();
+                        eur_foil = Some(Some(s));
+                    } else {
+                        return Err(ParseError::MismatchedType)
+                    }
+                }
+                "tix" => {
+                    if tix.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else if val.is_null() {
+                        tix = Some(None)
+                    } else if val.is_string() {
+                        let s = val.unwrap_string();
+                        tix = Some(Some(s));
+                    } else {
+                        return Err(ParseError::MismatchedType)
+                    }
+                },
+                _ => return Err(ParseError::UnkownVal(field))
+            }
+        }
+
+        Ok(Self {
+            usd:        usd.ok_or(ParseError::ValueExpected)?,
+            usd_foil:   usd_foil.ok_or(ParseError::ValueExpected)?,
+            usd_etched: usd_etched.ok_or(ParseError::ValueExpected)?,
+            eur:        eur.ok_or(ParseError::ValueExpected)?,
+            eur_foil:   eur_foil.ok_or(ParseError::ValueExpected)?,
+            tix:        tix.ok_or(ParseError::ValueExpected)?,
+        })
+    }
+}
+
+
+impl Deserialize for PurchaseURIs {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        if !tokens.is_object() {
+            return Err(ParseError::MismatchedType)
+        }
+
+        let fields = tokens.unwrap_object();
+
+        let mut tcgplayer: Option<URI> = None; 
+        let mut cardmarket: Option<URI> = None; 
+        let mut cardhoarder: Option<URI> = None;
+
+        for (field, val) in fields {
+            match &field[..] {
+                "tcgplayer" => {
+                    if tcgplayer.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else {
+                        let uri = URI::deserialize(val)?;
+                        tcgplayer = Some(uri)
+                    }
+                }
+                "cardmarket" => {
+                    if cardmarket.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else {
+                        let uri = URI::deserialize(val)?;
+                        cardmarket = Some(uri)
+                    }
+                }
+                "cardhoarder" => {
+                    if cardhoarder.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else {
+                        let uri = URI::deserialize(val)?;
+                        cardhoarder = Some(uri)
+                    }
+                },
+                _ => return Err(ParseError::UnkownVal(field))
+            }
+        }
+
+        Ok(Self {
+            tcgplayer:   tcgplayer.ok_or(ParseError::ValueExpected)?,  
+            cardmarket:  cardmarket.ok_or(ParseError::ValueExpected)?,  
+            cardhoarder: cardhoarder.ok_or(ParseError::ValueExpected)?,
+        })
+    }
+}
+
+
+impl Deserialize for Rarity {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        if !tokens.is_string() {
+            return Err(ParseError::MismatchedType)
+        }
+
+        let s = tokens.unwrap_string();
+
+        match &s[..] {
+            "common"    => Ok(Self::Common),
+            "uncommon"  => Ok(Self::Uncommon),
+            "rare"      => Ok(Self::Rare),
+            "special"   => Ok(Self::Special),
+            "mythic"    => Ok(Self::Mythic),
+            "bonus"     => Ok(Self::Bonus),
+            _           => Err(ParseError::UnkownVal(s))
+        }
+    }
+}
+
+
+impl Deserialize for RelatedURIs {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        if !tokens.is_object() {
+            return Err(ParseError::MismatchedType)
+        }
+
+        let fields = tokens.unwrap_object();
+
+        let mut tcgplayer_infinite_articles: Option<URI> = None; 
+        let mut tcgplayer_infinite_decks: Option<URI> = None; 
+        let mut edhrec: Option<URI> = None;
+
+        for (field, val) in fields {
+            match &field[..] {
+                "tcgplayer_infinite_articles" => {
+                    if tcgplayer_infinite_articles.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else {
+                        let uri = URI::deserialize(val)?;
+                        tcgplayer_infinite_articles = Some(uri)
+                    }
+                }
+                "tcgplayer_infinite_decks" => {
+                    if tcgplayer_infinite_decks.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else {
+                        let uri = URI::deserialize(val)?;
+                        tcgplayer_infinite_decks = Some(uri)
+                    }
+                }
+                "edhrec" => {
+                    if edhrec.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else {
+                        let uri = URI::deserialize(val)?;
+                        edhrec = Some(uri)
+                    }
+                },
+                _ => return Err(ParseError::UnkownVal(field))
+            }
+        }
+
+        Ok(Self {
+            tcgplayer_infinite_articles: tcgplayer_infinite_articles.ok_or(ParseError::ValueExpected)?,  
+            tcgplayer_infinite_decks:    tcgplayer_infinite_decks.ok_or(ParseError::ValueExpected)?,  
+            edhrec:                      edhrec.ok_or(ParseError::ValueExpected)?,
+        })
+    }
+}
+
+
+impl Deserialize for SecurityStamp {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        if !tokens.is_string() {
+            return Err(ParseError::MismatchedType)
+        }
+
+        let s = tokens.unwrap_string();
+
+        match &s[..] {
+            "oval"    => Ok(Self::Oval),
+            "triangle"  => Ok(Self::Triangle),
+            "acorn"      => Ok(Self::Acorn),
+            "circle"   => Ok(Self::Circle),
+            "arena"    => Ok(Self::Arena),
+            "heart"     => Ok(Self::Heart),
+            _           => Err(ParseError::UnkownVal(s))
+        }
+    }
+}

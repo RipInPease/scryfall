@@ -368,6 +368,7 @@ pub struct Games {
 }
 
 /// The state of this card's image
+#[derive(Debug, PartialEq)]
 pub enum ImageStatus {
     Missing,
     Placeholder,
@@ -376,6 +377,7 @@ pub enum ImageStatus {
 }
 
 /// Daily price information for this card
+#[derive(Debug, PartialEq)]
 pub struct Prices {
     pub usd         : Option<String>,
     pub usd_foil    : Option<String>,
@@ -386,13 +388,15 @@ pub struct Prices {
 }
 
 /// URIs to this card’s listing on major marketplaces
+#[derive(Debug, PartialEq)]
 pub struct PurchaseURIs {
-    pub tcgplayer       : Option<URI>,
-    pub cardmarket      : Option<URI>,
-    pub cardhoarder     : Option<URI>,
+    pub tcgplayer       : URI,
+    pub cardmarket      : URI,
+    pub cardhoarder     : URI,
 }
 
 /// A card's rarity
+#[derive(Debug, PartialEq)]
 pub enum Rarity {
     Common,
     Uncommon,
@@ -404,13 +408,15 @@ pub enum Rarity {
 
 /// URIs to this card’s listing on other 
 /// Magic: The Gathering online resources
+#[derive(Debug, PartialEq)]
 pub struct RelatedURIs {
-    pub tcgplayer_infinite_articles : Option<URI>,
-    pub tcgplayer_infinite_decks    : Option<URI>,
-    pub edhrec                      : Option<URI>
+    pub tcgplayer_infinite_articles : URI,
+    pub tcgplayer_infinite_decks    : URI,
+    pub edhrec                      : URI
 }
 
 /// The security stamp on this card
+#[derive(Debug, PartialEq)]
 pub enum SecurityStamp {
     Oval,
     Triangle,
@@ -418,7 +424,6 @@ pub enum SecurityStamp {
     Circle,
     Arena,
     Heart,
-    None
 }
 
 pub struct Card {
@@ -430,7 +435,7 @@ pub struct Card {
 /// Cards have these core properties
 pub struct CardCore {
     /// This card's arena ID, if any
-    pub arena_id        : Option<i32>,
+    pub arena_id            : Option<i32>,
 
     /// A unique ID for this card in Scryfall’s database
     pub id                  : UUID,
@@ -731,7 +736,7 @@ pub struct CardPrint {
     pub variation_of        : Option<UUID>,
 
     /// The [`SecurityStamp`] on this card
-    pub security_stamp      : SecurityStamp,
+    pub security_stamp      : Option<SecurityStamp>,
 
     /// This card’s watermark, if any
     pub watermark           : Option<String>,

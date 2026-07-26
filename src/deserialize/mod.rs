@@ -186,6 +186,9 @@ pub enum ParseError {
 
     /// Where the wrong type is passed as the value
     MismatchedType,
+
+    /// Where a value is passed too many times
+    DuplicateValue
 }
 
 /// Will try to parse an object.
