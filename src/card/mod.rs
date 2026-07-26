@@ -257,6 +257,7 @@ pub struct RelatedCard {
 }
 
 /// How legal a card is in a single format
+#[derive(Debug, PartialEq)]
 pub enum Legality {
     Legal,
     NotLegal,
@@ -265,6 +266,7 @@ pub enum Legality {
 }
 
 /// How legal a card is in all formats
+#[derive(Debug, PartialEq)]
 pub struct Legalities {
     pub standard            : Legality,
     pub future              : Legality,
@@ -292,6 +294,7 @@ pub struct Legalities {
 }
 
 /// The color a card's border can be
+#[derive(Debug, PartialEq)]
 pub enum BorderColor {
     Black,
     White,
@@ -301,14 +304,8 @@ pub enum BorderColor {
     Gold
 }
 
-/// A finish a card can come in
-pub enum Finish {
-    Foil,
-    Nonfoil,
-    Etched
-} 
-
 /// All finishes a card can come in
+#[derive(Debug, PartialEq)]
 pub struct Finishes {
     pub foil    : bool,
     pub nonfoil : bool,
@@ -317,6 +314,7 @@ pub struct Finishes {
 
 /// Tracis additional frame artwork applied 
 /// over a particular frame
+#[derive(Debug, PartialEq)]
 pub struct FrameEffects {
     pub legendary               : bool,    
     pub miracle                 : bool,
@@ -346,6 +344,7 @@ pub struct FrameEffects {
 
 /// The frame field tracks the edition of the card 
 /// frame of used for the re/print in question
+#[derive(Debug, PartialEq)]
 pub enum Frame {
     /// 1993
     Original,
@@ -360,6 +359,7 @@ pub enum Frame {
 }
 
 /// All games a card's print is available in
+#[derive(Debug, PartialEq)]
 pub struct Games {
     pub paper   : bool,
     pub arena   : bool,

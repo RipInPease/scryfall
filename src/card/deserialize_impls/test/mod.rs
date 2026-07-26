@@ -230,3 +230,202 @@ fn card_face_1() {
     let card_face = CardFace::deserialize(tokens);
     assert!(card_face.is_ok());
 }
+
+#[test]
+fn related_card_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/related_card.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let related_card = RelatedCard::deserialize(tokens);
+    assert!(related_card.is_ok());
+}
+
+#[test]
+fn legality_1() {
+    let legal = DesValue::String(String::from("legal"));
+    let not_legal = DesValue::String(String::from("not_legal"));
+    let restricted = DesValue::String(String::from("restricted"));
+    let banned = DesValue::String(String::from("banned"));
+    let fail = DesValue::String(String::from("fail"));
+
+    let legal = Legality::deserialize(legal);
+    let not_legal = Legality::deserialize(not_legal);
+    let restricted = Legality::deserialize(restricted);
+    let banned = Legality::deserialize(banned);
+    let fail = Legality::deserialize(fail);
+
+    assert_eq!(legal, Ok(Legality::Legal));
+    assert_eq!(not_legal, Ok(Legality::NotLegal));
+    assert_eq!(restricted, Ok(Legality::Restricted));
+    assert_eq!(banned, Ok(Legality::Banned));
+    assert_eq!(fail, Err(ParseError::UnkownVal(String::from("fail"))));    
+}
+
+#[test]
+fn legalities_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/legalities.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let legalities = Legalities::deserialize(tokens).unwrap();
+
+    let should = Legalities {
+        standard: Legality::NotLegal,
+        future: Legality::NotLegal,
+        historic: Legality::Banned,
+        timeless: Legality::Legal,
+        gladiator: Legality::Banned,
+        pioneer: Legality::NotLegal,
+        modern: Legality::Legal,
+        legacy: Legality::Legal,
+        pauper: Legality::NotLegal,
+        vintage: Legality::Legal,
+        penny: Legality::NotLegal,
+        commander: Legality::Legal,
+        oathbreaker: Legality::Legal,
+        standardbrawl: Legality::NotLegal,
+        brawl: Legality::Legal,
+        competitivebrawl: Legality::Banned,
+        alchemy: Legality::NotLegal,
+        paupercommander: Legality::NotLegal,
+        duel: Legality::Restricted,
+        oldschool: Legality::NotLegal,
+        premodern: Legality::NotLegal,
+        predh: Legality::NotLegal,
+        tlr: Legality::Restricted
+    };
+
+    assert_eq!(legalities, should);
+}
+
+#[test]
+fn border_color_1() {
+    let black = DesValue::String(String::from("black"));
+    let white = DesValue::String(String::from("white"));
+    let borderless = DesValue::String(String::from("borderless"));
+    let yellow = DesValue::String(String::from("yellow"));
+    let silver = DesValue::String(String::from("silver"));
+    let gold = DesValue::String(String::from("gold"));
+    let fail = DesValue::String(String::from("fail"));
+
+    let black = BorderColor::deserialize(black);
+    let white = BorderColor::deserialize(white);
+    let borderless = BorderColor::deserialize(borderless);
+    let yellow = BorderColor::deserialize(yellow);
+    let silver = BorderColor::deserialize(silver);
+    let gold = BorderColor::deserialize(gold);
+    let fail = BorderColor::deserialize(fail);
+
+    assert_eq!(black, Ok(BorderColor::Black));
+    assert_eq!(white, Ok(BorderColor::White));
+    assert_eq!(borderless, Ok(BorderColor::Borderless));
+    assert_eq!(yellow, Ok(BorderColor::Yellow));
+    assert_eq!(silver, Ok(BorderColor::Silver));
+    assert_eq!(gold, Ok(BorderColor::Gold)); 
+    assert_eq!(fail, Err(ParseError::UnkownVal(String::from("fail")))); 
+}
+
+#[test]
+fn finishes_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/finishes.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let obj = tokens.unwrap_object();
+    assert_eq!(obj.len(), 1);
+
+    for token in obj {
+        let should = Finishes { 
+            foil: true,
+            nonfoil: true,
+            etched: false
+        };
+
+        let finishes = Finishes::deserialize(token.1);
+        assert_eq!(finishes, Ok(should));
+    }
+}
+
+#[test]
+fn frame_effects_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/frame_effects.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let obj = tokens.unwrap_object();
+    assert_eq!(obj.len(), 1);
+
+    for token in obj {
+        let should = FrameEffects { 
+            legendary: false,
+            miracle: false,
+            enchantment: false,
+            draft: false,
+            devoid: false,
+            tombstone: false,
+            colorshifted: false,
+            inverted: false,
+            sunmoondfc: true,
+            compasslanddfc: false,
+            originpwdfc: false,
+            mooneldrazidfc: false,
+            waxingandwaningmoondfc: false,
+            showcase: false,
+            extendedart: false,
+            companion: false,
+            etched: false,
+            snow: false,
+            lesson: false,
+            shatteredglass: false,
+            convertdfc: false,
+            fandfc: false,
+            upsidedowndfc: false,
+            spree: false,
+        };
+
+        let effects = FrameEffects::deserialize(token.1);
+        assert_eq!(effects, Ok(should));
+    }
+}
+
+#[test]
+fn frame_1() {
+    let original = DesValue::String(String::from("1993"));
+    let updated_classic = DesValue::String(String::from("1997"));
+    let modern = DesValue::String(String::from("2003"));
+    let holo_foil_stamp = DesValue::String(String::from("2015"));
+    let future = DesValue::String(String::from("future"));
+    let fail = DesValue::String(String::from("fail"));
+
+    let original = Frame::deserialize(original);
+    let updated_classic = Frame::deserialize(updated_classic);
+    let modern = Frame::deserialize(modern);
+    let holo_foil_stamp = Frame::deserialize(holo_foil_stamp);
+    let future = Frame::deserialize(future);
+    let fail = Frame::deserialize(fail);
+
+    assert_eq!(original, Ok(Frame::Original));
+    assert_eq!(updated_classic, Ok(Frame::UpdatedClassic));
+    assert_eq!(modern, Ok(Frame::Modern));
+    assert_eq!(holo_foil_stamp, Ok(Frame::HoloFoilStamp));
+    assert_eq!(future, Ok(Frame::Future));    
+    assert_eq!(fail, Err(ParseError::UnkownVal(String::from("fail"))));    
+}
+
+#[test]
+fn games_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/games.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let obj = tokens.unwrap_object();
+    assert_eq!(obj.len(), 1);
+
+    for token in obj {
+        let should = Games { 
+            paper: true,
+            arena: true,
+            astral: false,
+            sega: false
+        };
+
+        let finishes = Games::deserialize(token.1);
+        assert_eq!(finishes, Ok(should));
+    }
+}
