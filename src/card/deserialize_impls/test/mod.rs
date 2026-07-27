@@ -421,6 +421,7 @@ fn games_1() {
         let should = Games { 
             paper: true,
             arena: true,
+            mtgo: false,
             astral: false,
             sega: false
         };
@@ -521,6 +522,7 @@ fn related_uris_1() {
     let prices = RelatedURIs::deserialize(tokens);
 
     let should = RelatedURIs {
+        gatherer: URI(String::from("https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=522262&printed=false")),
         tcgplayer_infinite_articles: URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DGalion%252C%2BElvenking%2527s%2BButler")),
         tcgplayer_infinite_decks: URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DGalion%252C%2BElvenking%2527s%2BButler")),
         edhrec: URI(String::from("https://edhrec.com/route/?cc=Galion%2C+Elvenking%27s+Butler")),
@@ -554,4 +556,28 @@ fn security_stamp_1() {
     assert_eq!(arena, Ok(SecurityStamp::Arena));
     assert_eq!(heart, Ok(SecurityStamp::Heart));
     assert_eq!(fail, Err(ParseError::UnkownVal(String::from("fail"))));
+}
+
+#[test]
+fn pewview_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/preview.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let preview = Preview::deserialize(tokens);
+
+    let should = Preview {
+        source: Some(String::from("Wizards of the Coast")),
+        source_uri: Some(URI(String::from("https://magic.wizards.com/en/articles/archive/card-preview/challenge-accepted-2021-05-26"))),
+        previewed_at: Some(String::from("2021-05-26")),
+    };
+
+    assert_eq!(preview, Ok(should));
+}
+
+#[test]
+fn card_1() {
+    let s = std::fs::read_to_string("src/card/deserialize_impls/test/card.json").unwrap();
+    let tokens = parse_json_string(s).unwrap();
+
+    let _ = Card::deserialize(tokens).unwrap();
 }

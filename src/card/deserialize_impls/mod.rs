@@ -868,6 +868,7 @@ impl Deserialize for Games {
 
         let mut paper  = false;
         let mut arena  = false;
+        let mut mtgo   = false;
         let mut astral = false;
         let mut sega   = false;
 
@@ -880,6 +881,7 @@ impl Deserialize for Games {
             match &s[..] {
                 "paper"  => paper = true,
                 "arena"  => arena = true,
+                "mtgo"   => mtgo = true,
                 "astral" => astral = true,
                 "sega"   => sega = true,
                 _        => return Err(ParseError::UnkownVal(s))
@@ -889,6 +891,7 @@ impl Deserialize for Games {
         Ok(Self { 
             paper,
             arena,
+            mtgo,
             astral,
             sega
         })
@@ -1110,12 +1113,21 @@ impl Deserialize for RelatedURIs {
 
         let fields = tokens.unwrap_object();
 
+        let mut gatherer: Option<URI> = None; 
         let mut tcgplayer_infinite_articles: Option<URI> = None; 
         let mut tcgplayer_infinite_decks: Option<URI> = None; 
         let mut edhrec: Option<URI> = None;
 
         for (field, val) in fields {
             match &field[..] {
+                "gatherer" => {
+                    if gatherer.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    } else {
+                        let uri = URI::deserialize(val)?;
+                        gatherer = Some(uri)
+                    }
+                },
                 "tcgplayer_infinite_articles" => {
                     if tcgplayer_infinite_articles.is_some() {
                         return Err(ParseError::DuplicateValue)
@@ -1145,6 +1157,7 @@ impl Deserialize for RelatedURIs {
         }
 
         Ok(Self {
+            gatherer:                    gatherer.ok_or(ParseError::ValueExpected)?,
             tcgplayer_infinite_articles: tcgplayer_infinite_articles.ok_or(ParseError::ValueExpected)?,  
             tcgplayer_infinite_decks:    tcgplayer_infinite_decks.ok_or(ParseError::ValueExpected)?,  
             edhrec:                      edhrec.ok_or(ParseError::ValueExpected)?,
@@ -1172,5 +1185,910 @@ impl Deserialize for SecurityStamp {
             "heart"     => Ok(Self::Heart),
             _           => Err(ParseError::UnkownVal(s))
         }
+    }
+}
+
+
+impl Deserialize for Preview {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        let fields = tokens.object_or(ParseError::MismatchedType)?;
+
+        let mut previewed_at: Option<String> = None;
+        let mut source_uri: Option<URI> = None;
+        let mut source: Option<String> = None;
+
+        for (field, val) in fields {
+            match  &field[..] {
+                "previewed_at" => {
+                    if previewed_at.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    previewed_at = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "source_uri" => {
+                    if source_uri.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let u = URI::deserialize(val)?;
+                    source_uri = Some(u)
+                },
+                "source" => {
+                    if source.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    source = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                _ => return Err(ParseError::UnkownVal(field))
+            }
+        }
+
+        Ok(Self {
+            source_uri,
+            previewed_at,
+            source,
+        })
+    }
+}
+
+
+impl Deserialize for Card {
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
+    where Self: Sized
+    {
+        let fields = tokens.object_or(ParseError::MismatchedType)?;
+
+        let mut arena_id: Option<i32> = None;
+        let mut id: Option<UUID> = None;
+        let mut lang: Option<Language> = None;
+        let mut mtgo_id: Option<i32> = None;
+        let mut mtgo_foil_id: Option<i32> = None;
+        let mut multiverse_ids: Option<Vec<i32>> = None;
+        let mut resource_id: Option<String> = None;
+        let mut tcgplayer_id: Option<i32> = None;
+        let mut tcgplayer_etched_id: Option<i32> = None;
+        let mut cardmarket_id: Option<i32> = None;
+        let mut layout: Option<Layout> = None;
+        let mut oracle_id: Option<UUID> = None;
+        let mut prints_search_uri: Option<URI> = None;
+        let mut rulings_uri: Option<URI> = None;
+        let mut scryfall_uri: Option<URI> = None;
+        let mut uri: Option<URI> = None;
+
+        let mut all_parts: Option<Vec<RelatedCard>> = None;
+        let mut card_faces: Option<Vec<CardFace>> = None;
+        let mut cmc: Option<f32> = None;
+        let mut color_identity: Option<Vec<Color>> = None;
+        let mut color_indicator: Option<Vec<Color>> = None;
+        let mut colors: Option<Vec<Color>> = None;
+        let mut defense: Option<String> = None;
+        let mut edhrec_rank: Option<i32> = None;
+        let mut game_changer: Option<bool> = None;
+        let mut hand_modifier: Option<String> = None;
+        let mut keywords: Option<Vec<String>> = None;
+        let mut legalities: Option<Legalities> = None;
+        let mut life_modifier: Option<String> = None;
+        let mut loyalty: Option<String> = None;
+        let mut mana_cost: Option<String> = None;
+        let mut name: Option<String> = None;
+        let mut oracle_text: Option<String> = None;
+        let mut penny_rank: Option<i32> = None;
+        let mut power: Option<String> = None;
+        let mut produced_mana: Option<Vec<Color>> = None;
+        let mut reserved: Option<bool> = None;
+        let mut toughness: Option<String> = None;
+        let mut type_line: Option<String> = None;
+
+        let mut artist: Option<String> = None;
+        let mut artist_ids: Option<Vec<UUID>> = None;
+        let mut attraction_lights: Option<Vec<i32>> = None;
+        let mut booster: Option<bool> = None;
+        let mut border_color: Option<BorderColor> = None;
+        let mut card_back_id: Option<UUID> = None;
+        let mut collector_number: Option<String> = None;
+        let mut content_warning: Option<bool> = None;
+        let mut digital: Option<bool> = None;
+        let mut finishes: Option<Finishes> = None;
+        let mut flavor_name: Option<String> = None;
+        let mut flavor_text: Option<String> = None;
+        let mut frame_effects: Option<FrameEffects> = None;
+        let mut frame: Option<Frame> = None;
+        let mut full_art: Option<bool> = None;
+        let mut games: Option<Games> = None;
+        let mut highres_image: Option<bool> = None;
+        let mut illustration_id: Option<UUID> = None;
+        let mut image_status: Option<ImageStatus> = None;
+        let mut image_updated_at: Option<String> = None;
+        let mut image_uris: Option<ImageURIs> = None;
+        let mut oversized: Option<bool> = None;
+        let mut prices: Option<Prices> = None;
+        let mut printed_name: Option<String> = None;
+        let mut printed_text: Option<String> = None;
+        let mut printed_type_line: Option<String> = None;
+        let mut promo: Option<bool> = None;
+        let mut promo_types: Option<Vec<String>> = None;
+        let mut purchase_uris: Option<PurchaseURIs> = None;
+        let mut rarity: Option<Rarity> = None;
+        let mut related_uris: Option<RelatedURIs> = None;
+        let mut released_at: Option<String> = None;
+        let mut reprint: Option<bool> = None;
+        let mut scryfall_set_uri: Option<URI> = None;
+        let mut set_name: Option<String> = None;
+        let mut set_search_uri: Option<URI> = None;
+        let mut set_type: Option<String> = None;
+        let mut set_uri: Option<URI> = None;
+        let mut set: Option<String> = None;
+        let mut set_id: Option<UUID> = None;
+        let mut story_spotlight: Option<bool> = None;
+        let mut textless: Option<bool> = None;
+        let mut variation: Option<bool> = None;
+        let mut variation_of: Option<UUID> = None;
+        let mut security_stamp: Option<SecurityStamp> = None;
+        let mut watermark: Option<String> = None;
+        let mut preview: Option<Preview> = None;
+
+
+        for (field, val) in fields {
+            println!("Field: {field}");
+            match &field[..] {
+                // Foil and Nonfoil are under the object Finishes
+                "foil" | "nonfoil" => {}
+                "object" => {
+                    let s = val.string_or(ParseError::MismatchedType)?;
+                    if &s != "card" {
+                        return Err(ParseError::UnkownVal(s));
+                    }
+                },
+                "arena_id" => {
+                    if arena_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                    arena_id = Some(n)
+                },
+                "id" => {
+                    if id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let uuid = UUID::deserialize(val)?;
+                    id = Some(uuid);
+                },
+                "lang" => {
+                    if lang.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let language = Language::deserialize(val)?;
+                    lang = Some(language);
+                },
+                "mtgo_id" => {
+                    if mtgo_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                    mtgo_id = Some(n)
+                },
+                "mtgo_foil_id" => {
+                    if mtgo_foil_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                    mtgo_foil_id = Some(n)
+                },
+                "multiverse_ids" => {
+                    if multiverse_ids.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        let n = v.num_or(ParseError::MismatchedType)?;
+                        let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                        values.push(n);
+                    }
+
+                    multiverse_ids = Some(values)
+                },
+                "resource_id" => {
+                    if resource_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    resource_id = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "tcgplayer_id" => {
+                    if tcgplayer_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                    tcgplayer_id = Some(n)
+                },
+                "tcgplayer_etched_id" => {
+                    if tcgplayer_etched_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                    tcgplayer_etched_id = Some(n)
+                },
+                "cardmarket_id" => {
+                    if cardmarket_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                    cardmarket_id = Some(n)
+                },
+                "layout" => {
+                    if layout.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let l = Layout::deserialize(val)?;
+                    layout = Some(l)
+                },
+                "oracle_id" => {
+                    if oracle_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let uuid = UUID::deserialize(val)?;
+                    oracle_id = Some(uuid)
+                },
+                "prints_search_uri" => {
+                    if prints_search_uri.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let uri = URI::deserialize(val)?;
+                    prints_search_uri = Some(uri)
+                },
+                "rulings_uri" => {
+                    if rulings_uri.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let uri = URI::deserialize(val)?;
+                    rulings_uri = Some(uri)
+                },
+                "scryfall_uri" => {
+                    if scryfall_uri.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let uri = URI::deserialize(val)?;
+                    scryfall_uri = Some(uri)
+                },
+                "uri" => {
+                    if uri.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let u = URI::deserialize(val)?;
+                    uri = Some(u)
+                },
+                "all_parts" => {
+                    if all_parts.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(RelatedCard::deserialize(v)?);
+                    }
+
+                    all_parts = Some(values)
+                },
+                "card_faces" => {
+                    if card_faces.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(CardFace::deserialize(v)?);
+                    }
+
+                    card_faces = Some(values)
+                },
+                "cmc" => {
+                    if cmc.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<f32>().or(Err(ParseError::UnkownVal(n)))?;
+                    cmc = Some(n)
+                },
+                "color_identity" => {
+                    if color_identity.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(Color::deserialize(v)?);
+                    }
+
+                    color_identity = Some(values)
+                },
+                "color_indicator" => {
+                    if color_indicator.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(Color::deserialize(v)?);
+                    }
+
+                    color_indicator = Some(values)
+                },
+                "colors" => {
+                    if colors.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(Color::deserialize(v)?);
+                    }
+
+                    colors = Some(values)
+                },
+                "defense" => {
+                    if defense.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    defense = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "edhrec_rank" => {
+                    if edhrec_rank.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                    edhrec_rank = Some(n)
+                },
+                "game_changer" => {
+                    if game_changer.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    game_changer = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "hand_modifier" => {
+                    if hand_modifier.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    hand_modifier = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "keywords" => {
+                    if keywords.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(v.string_or(ParseError::MismatchedType)?);
+                    }
+
+                    keywords = Some(values)
+                },
+                "legalities" => {
+                    if legalities.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let l = Legalities::deserialize(val)?;
+                    legalities = Some(l)
+                },
+                "life_modifier" => {
+                    if life_modifier.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    life_modifier = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "loyalty" => {
+                    if loyalty.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    loyalty = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "mana_cost" => {
+                    if mana_cost.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    mana_cost = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "name" => {
+                    if name.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    name = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "oracle_text" => {
+                    if oracle_text.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    oracle_text = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "penny_rank" => {
+                    if penny_rank.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let n = val.num_or(ParseError::MismatchedType)?;
+                    let n = n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?;
+                    penny_rank = Some(n)
+                },
+                "power" => {
+                    if power.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    power = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "produced_mana" => {
+                    if produced_mana.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(Color::deserialize(v)?);
+                    }
+
+                    produced_mana = Some(values)
+                },
+                "reserved" => {
+                    if reserved.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    reserved = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "toughness" => {
+                    if toughness.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    toughness = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "type_line" => {
+                    if type_line.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    type_line = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "artist" => {
+                    if artist.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    artist = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "artist_ids" => {
+                    if artist_ids.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(UUID::deserialize(v)?);
+                    }
+
+                    artist_ids = Some(values)
+                },
+                "attraction_lights" => {
+                    if attraction_lights.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        let n = v.num_or(ParseError::MismatchedType)?;
+                        values.push(n.parse::<i32>().or(Err(ParseError::UnkownVal(n)))?);
+                    }
+
+                    attraction_lights = Some(values)
+                },
+                "booster" => {
+                    if booster.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    booster = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "border_color" => {
+                    if border_color.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let b = BorderColor::deserialize(val)?;
+                    border_color = Some(b)
+                },
+                "card_back_id" => {
+                    if card_back_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let id = UUID::deserialize(val)?;
+                    card_back_id = Some(id)
+                },
+                "collector_number" => {
+                    if collector_number.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    collector_number = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "content_warning" => {
+                    if content_warning.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    content_warning = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "digital" => {
+                    if digital.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    digital = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "finishes" => {
+                    if finishes.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let f = Finishes::deserialize(val)?;
+                    finishes = Some(f)
+                },
+                "flavor_name" => {
+                    if flavor_name.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    flavor_name = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "flavor_text" => {
+                    if flavor_text.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    flavor_text = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "frame_effects" => {
+                    if frame_effects.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let f = FrameEffects::deserialize(val)?;
+                    frame_effects = Some(f)
+                },
+                "frame" => {
+                    if frame.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let f = Frame::deserialize(val)?;
+                    frame = Some(f)
+                },
+                "full_art" => {
+                    if full_art.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    full_art = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "games" => {
+                    if games.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let g = Games::deserialize(val)?;
+                    games = Some(g)
+                },
+                "highres_image" => {
+                    if highres_image.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    highres_image = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "illustration_id" => {
+                    if illustration_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let id = UUID::deserialize(val)?;
+                    illustration_id = Some(id)
+                },
+                "image_status" => {
+                    if image_status.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let i = ImageStatus::deserialize(val)?;
+                    image_status = Some(i)
+                },
+                "image_updated_at" => {
+                    if image_updated_at.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let s = val.string_or(ParseError::MismatchedType)?;
+                    image_updated_at = Some(s)
+                },
+                "image_uris" => {
+                    if image_uris.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let i = ImageURIs::deserialize(val)?;
+                    image_uris = Some(i)
+                },
+                "oversized" => {
+                    if oversized.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    oversized = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "prices" => {
+                    if prices.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let p = Prices::deserialize(val)?;
+                    prices = Some(p)
+                },
+                "printed_name" => {
+                    if printed_name.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    printed_name = Some(val.string_or(ParseError::MismatchedType)?)
+                }
+                "printed_text" => {
+                    if printed_text.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    printed_text = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "printed_type_line" => {
+                    if printed_type_line.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    printed_type_line = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "promo" => {
+                    if promo.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    promo = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "promo_types" => {
+                    if promo_types.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+
+                    let arr = val.array_or(ParseError::MismatchedType)?;
+                    let mut values = Vec::new();
+
+                    for v in arr.into_iter() {
+                        values.push(v.string_or(ParseError::MismatchedType)?);
+                    }
+
+                    promo_types = Some(values)
+                },
+                "purchase_uris" => {
+                    if purchase_uris.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let p = PurchaseURIs::deserialize(val)?;
+                    purchase_uris = Some(p)
+                },
+                "rarity" => {
+                    if rarity.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let r = Rarity::deserialize(val)?;
+                    rarity = Some(r)
+                },
+                "related_uris" => {
+                    if related_uris.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let r = RelatedURIs::deserialize(val)?;
+                    related_uris = Some(r)
+                },
+                "released_at" => {
+                    if released_at.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    released_at = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "reprint" => {
+                    if reprint.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    reprint = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "scryfall_set_uri" => {
+                    if scryfall_set_uri.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let u = URI::deserialize(val)?;
+                    scryfall_set_uri = Some(u)
+                },
+                "set_name" => {
+                    if set_name.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    set_name = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "set_search_uri" => {
+                    if set_search_uri.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let u = URI::deserialize(val)?;
+                    set_search_uri = Some(u)
+                },
+                "set_type" => {
+                    if set_type.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    set_type = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "set_uri" => {
+                    if set_uri.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let u = URI::deserialize(val)?;
+                    set_uri = Some(u)
+                },
+                "set" => {
+                    if set.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    set = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "set_id" => {
+                    if set_id.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let id = UUID::deserialize(val)?;
+                    set_id = Some(id)
+                },
+                "story_spotlight" => {
+                    if story_spotlight.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    story_spotlight = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "textless" => {
+                    if textless.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    textless = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "variation" => {
+                    if variation.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    variation = Some(val.bool_or(ParseError::MismatchedType)?)
+                },
+                "variation_of" => {
+                    if variation_of.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let id = UUID::deserialize(val)?;
+                    variation_of = Some(id)
+                },
+                "security_stamp" => {
+                    if security_stamp.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let s = SecurityStamp::deserialize(val)?;
+                    security_stamp = Some(s)
+                },
+                "watermark" => {
+                    if watermark.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    watermark = Some(val.string_or(ParseError::MismatchedType)?)
+                },
+                "preview" => {
+                    if preview.is_some() {
+                        return Err(ParseError::DuplicateValue)
+                    }
+                    let p = Preview::deserialize(val)?;
+                    preview = Some(p);
+                }
+                _ => return Err(ParseError::UnkownVal(field))
+            }
+        }
+
+        
+        let core_fields = CardCore {
+            arena_id,
+            id: id.ok_or(ParseError::ValueExpected)?,
+            lang: lang.ok_or(ParseError::ValueExpected)?,
+            mtgo_id,
+            mtgo_foil_id,
+            multiverse_ids,
+            resource_id,
+            tcgplayer_id,
+            tcgplayer_etched_id,
+            cardmarket_id,
+            layout: layout.ok_or(ParseError::ValueExpected)?,
+            oracle_id,
+            prints_search_uri: prints_search_uri.ok_or(ParseError::ValueExpected)?,
+            rulings_uri: rulings_uri.ok_or(ParseError::ValueExpected)?,
+            scryfall_uri: scryfall_uri.ok_or(ParseError::ValueExpected)?,
+            uri: uri.ok_or(ParseError::ValueExpected)?
+        };
+
+        let gameplay = CardGameplay {
+            all_parts,
+            card_faces,
+            cmc: cmc.ok_or(ParseError::ValueExpected)?,
+            color_identity: color_identity.ok_or(ParseError::ValueExpected)?,
+            color_indicator,
+            colors,
+            defense,
+            edhrec_rank,
+            game_changer,
+            hand_modifier,
+            keywords: keywords.ok_or(ParseError::ValueExpected)?,
+            legalities: legalities.ok_or(ParseError::ValueExpected)?,
+            life_modifier,
+            loyalty,
+            mana_cost,
+            name: name.ok_or(ParseError::ValueExpected)?,
+            oracle_text,
+            penny_rank,
+            power,
+            produced_mana,
+            reserved: reserved.ok_or(ParseError::ValueExpected)?,
+            toughness,
+            type_line: type_line.ok_or(ParseError::ValueExpected)?
+        };
+
+        let print_fields = CardPrint {
+            artist,
+            artist_ids,
+            attraction_lights,
+            booster: booster.ok_or(ParseError::ValueExpected)?,
+            border_color: border_color.ok_or(ParseError::ValueExpected)?,
+            card_back_id: card_back_id.ok_or(ParseError::ValueExpected)?,
+            collector_number: collector_number.ok_or(ParseError::ValueExpected)?,
+            content_warning,
+            digital: digital.ok_or(ParseError::ValueExpected)?,
+            finishes: finishes.ok_or(ParseError::ValueExpected)?,
+            flavor_name,
+            flavor_text,
+            frame_effects: frame_effects.ok_or(ParseError::ValueExpected)?,
+            frame: frame.ok_or(ParseError::ValueExpected)?,
+            full_art: full_art.ok_or(ParseError::ValueExpected)?,
+            games: games.ok_or(ParseError::ValueExpected)?,
+            highres_image: highres_image.ok_or(ParseError::ValueExpected)?,
+            illustration_id,
+            image_status: image_status.ok_or(ParseError::ValueExpected)?,
+            image_updated_at: image_updated_at.ok_or(ParseError::ValueExpected)?,
+            image_uris,
+            oversized: oversized.ok_or(ParseError::ValueExpected)?,
+            prices: prices.ok_or(ParseError::ValueExpected)?,
+            printed_name,
+            printed_text,
+            printed_type_line,
+            promo: promo.ok_or(ParseError::ValueExpected)?,
+            promo_types,
+            purchase_uris: purchase_uris.ok_or(ParseError::ValueExpected)?,
+            rarity: rarity.ok_or(ParseError::ValueExpected)?,
+            related_uris: related_uris.ok_or(ParseError::ValueExpected)?,
+            released_at: released_at.ok_or(ParseError::ValueExpected)?,
+            reprint: reprint.ok_or(ParseError::ValueExpected)?,
+            scryfall_set_uri: scryfall_set_uri.ok_or(ParseError::ValueExpected)?,
+            set_name: set_name.ok_or(ParseError::ValueExpected)?,
+            set_search_uri: set_search_uri.ok_or(ParseError::ValueExpected)?,
+            set_type: set_type.ok_or(ParseError::ValueExpected)?,
+            set_uri: set_uri.ok_or(ParseError::ValueExpected)?,
+            set: set.ok_or(ParseError::ValueExpected)?,
+            set_id: set_id.ok_or(ParseError::ValueExpected)?,
+            story_spotlight: story_spotlight.ok_or(ParseError::ValueExpected)?,
+            textless: textless.ok_or(ParseError::ValueExpected)?,
+            variation: variation.ok_or(ParseError::ValueExpected)?,
+            variation_of: variation_of,
+            security_stamp,
+            watermark,
+            preview: preview.ok_or(ParseError::ValueExpected)?,
+        };
+    
+        Ok(Self { core_fields, gameplay, print_fields })
     }
 }

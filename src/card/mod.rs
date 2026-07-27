@@ -363,6 +363,7 @@ pub enum Frame {
 pub struct Games {
     pub paper   : bool,
     pub arena   : bool,
+    pub mtgo    : bool,
     pub astral  : bool,
     pub sega    : bool,
 }
@@ -410,6 +411,7 @@ pub enum Rarity {
 /// Magic: The Gathering online resources
 #[derive(Debug, PartialEq)]
 pub struct RelatedURIs {
+    pub gatherer                    : URI,
     pub tcgplayer_infinite_articles : URI,
     pub tcgplayer_infinite_decks    : URI,
     pub edhrec                      : URI
@@ -424,6 +426,19 @@ pub enum SecurityStamp {
     Circle,
     Arena,
     Heart,
+}
+
+/// Preview data
+#[derive(Debug, PartialEq)]
+pub struct Preview {
+    /// The date this card was previewed
+    pub previewed_at        : Option<String>,
+
+    /// A link to the preview for this card
+    pub source_uri  : Option<URI>,
+
+    /// The name of the source that previewed this card
+    pub source      : Option<String>
 }
 
 pub struct Card {
@@ -450,7 +465,7 @@ pub struct CardCore {
     pub mtgo_foil_id        : Option<i32>,
 
     /// This card's multiverse IDs on Gatherer, if any
-    pub multiverse_ids      : Option<Vec<String>>,
+    pub multiverse_ids      : Option<Vec<i32>>,
 
     /// This card’s Resource ID on Gatherer, if any
     pub resource_id         : Option<String>,
@@ -520,7 +535,7 @@ pub struct CardGameplay {
     pub edhrec_rank         : Option<i32>,
 
     /// True if this card is on the Commander Game Changer list
-    pub game_changes        : Option<bool>,
+    pub game_changer        : Option<bool>,
 
     /// This card’s hand modifier, if it is Vanguard card. 
     /// This value will contain a delta, such as -1
@@ -654,6 +669,9 @@ pub struct CardPrint {
     /// The [`ImageStatus`] of this card's image
     pub image_status        : ImageStatus,
 
+    /// The last time the image was updated
+    pub image_updated_at    : String,
+
     /// An object providing URIs to imagery for this face, 
     /// if this is a double-sided card. 
     /// If this card is not double-sided, 
@@ -742,11 +760,5 @@ pub struct CardPrint {
     pub watermark           : Option<String>,
 
     /// The date this card was previewed
-    pub previewed_at        : Option<String>,
-
-    /// A link to the preview for this card
-    pub preview_source_uri  : Option<URI>,
-
-    /// The name of the source that previewed this card
-    pub preview_source      : Option<String>
+    pub preview           : Preview
 }

@@ -136,6 +136,90 @@ impl DesValue {
             _ => panic!("Called unwrap_array on non-array value")
         }
     }
+
+    /// Transforms `DesValue` into a [`Result<String, E>`],
+    /// mapping [`DesValue::String(s)`] to [`Ok(s)`]
+    /// and all others to [`Err(err)`].
+    ///
+    /// [`DesValue::String(s)`]: DesValue::String
+    /// [`Ok(s)`]: Ok
+    /// [`Err(err)`]: Err
+    pub fn string_or<E>(self, err: E) -> Result<String, E> {
+        match self {
+            Self::String(s) => Ok(s),
+            _ => Err(err),
+        }
+    }
+
+    /// Transforms `DesValue` into a [`Result<String, E>`],
+    /// mapping [`DesValue::Num(n)`] to [`Ok(n)`]
+    /// and all others to [`Err(err)`].
+    ///
+    /// [`DesValue::Num(n)`]: DesValue::Num
+    /// [`Ok(n)`]: Ok
+    /// [`Err(err)`]: Err
+    pub fn num_or<E>(self, err: E) -> Result<String, E> {
+        match self {
+            Self::Num(n) => Ok(n),
+            _ => Err(err),
+        }
+    }
+
+    /// Transforms `DesValue` into a [`Result<bool, E>`],
+    /// mapping [`DesValue::Bool(b)`] to [`Ok(b)`]
+    /// and all others to [`Err(err)`].
+    ///
+    /// [`DesValue::Bool(b)`]: DesValue::Bool
+    /// [`Ok(b)`]: Ok
+    /// [`Err(err)`]: Err
+    pub fn bool_or<E>(self, err: E) -> Result<bool, E> {
+        match self {
+            Self::Bool(b) => Ok(b),
+            _ => Err(err),
+        }
+    }
+
+    /// Transforms `DesValue` into a [`Result<Box<[(String, DesValue)]>, E>`],
+    /// mapping [`DesValue::Object(o)`] to [`Ok(o)`]
+    /// and all others to [`Err(err)`].
+    ///
+    /// [`DesValue::Object(o)`]: DesValue::Object
+    /// [`Ok(o)`]: Ok
+    /// [`Err(err)`]: Err
+    pub fn object_or<E>(self, err: E) -> Result<Box<[(String, DesValue)]>, E> {
+        match self {
+            Self::Object(o) => Ok(o),
+            _ => Err(err),
+        }
+    }
+
+    /// Transforms `DesValue` into a [`Result<Box<[DesValue]>, E>`],
+    /// mapping [`DesValue::Array(a)`] to [`Ok(a)`]
+    /// and all others to [`Err(err)`].
+    ///
+    /// [`DesValue::Array(a)`]: DesValue::Array
+    /// [`Ok(a)`]: Ok
+    /// [`Err(err)`]: Err
+    pub fn array_or<E>(self, err: E) -> Result<Box<[DesValue]>, E> {
+        match self {
+            Self::Array(a) => Ok(a),
+            _ => Err(err),
+        }
+    }
+
+    /// Transforms `DesValue` into a [`Result<(), E>`],
+    /// mapping [`DesValue::Null`] to [`Ok(())`]
+    /// and all others to [`Err(err)`].
+    ///
+    /// [`DesValue::Null`]: DesValue::Null
+    /// [`Ok(())`]: Ok
+    /// [`Err(err)`]: Err
+    pub fn null_or<E>(self, err: E) -> Result<(), E> {
+        match self {
+            Self::Null => Ok(()),
+            _ => Err(err),
+        }
+    }
 }
 
 impl From<String> for DesValue {
