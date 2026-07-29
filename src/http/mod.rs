@@ -1,0 +1,227 @@
+#[cfg(test)]
+mod test;
+
+use std::collections::HashMap;
+use std::net::TcpStream;
+use std::io::{Read, Error as IOError};
+
+/// Only for HTTP 1.1
+pub struct Response {
+    pub status_code: HttpStatus,
+    pub headers: HashMap<String, String>,
+    pub data: Box<[u8]>
+}
+
+pub struct HttpStatus {
+    pub code: u16,
+    pub message: String
+}
+
+impl HttpStatus {
+    pub fn is_success(&self) -> bool {
+        (200..300).contains(&self.code)
+    }
+
+    pub fn is_redirect(&self) -> bool {
+        (300..400).contains(&self.code)
+    }
+
+    pub fn is_client_error(&self) -> bool {
+        (400..500).contains(&self.code)
+    }
+
+    pub fn is_server_error(&self) -> bool {
+        (500..600).contains(&self.code)
+    }
+}
+
+#[derive(Debug)]
+pub enum Error {
+    IoError(IOError),
+
+    /// Where a value given is not up to the standard I pretend to follow
+    IncorrectValue {
+        expected: &'static str,
+        got     : String,
+    },
+
+    /// If we expected some utf-data but got some other shit
+    NonUTF8,
+
+    /// What the fuck did I just read
+    ProtocolDeviation
+}
+
+impl Error {
+    /// Returns `true` if it is equal to [`Error::IoError`]
+    pub fn is_io_error(&self) -> bool {
+        match self {
+            Self::IoError(_) => true,
+            _ => false
+        }
+    }
+
+    /// Returns `true` if it is equal to [`Error::IncorrectValue`]
+    pub fn is_incorrect_value(&self) -> bool {
+        match self {
+            Self::IncorrectValue{..} => true,
+            _ => false
+        }
+    }
+
+    /// Returns `true` if it is equal to [`Error::NonUTF8`]
+    pub fn is_non_utf8(&self) -> bool {
+        match self {
+            Self::NonUTF8 => true,
+            _ => false
+        }
+    }
+
+    /// Returns the contained [`Error::IncorrectValue`], consuming the `self` value
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is not equal [`Error::IncorrectValue`]
+    ///
+    pub fn unwrap_incorrect_value(self) -> (&'static str, String) {
+        match self {
+            Self::IncorrectValue { expected, got } => (expected, got),
+            _ => panic!("Called unwrap_incorrect_value on non-incorrect-value error"),
+        }
+    }
+
+    /// Returns the contained [`Error::IoError`], consuming the `self` value
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is not equal [`Error::IoError`]
+    ///
+    pub fn unwrap_io_error(self) -> IOError {
+        match self {
+            Self::IoError(e) => e,
+            _ => panic!("Called unwrap_io_error on non-io error"),
+        }
+    }
+
+    /// Returns successfully if the value is [`Error::NonUTF8`], consuming the `self` value
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is not equal [`Error::NonUTF8`]
+    ///
+    pub fn unwrap_non_utf8(self) {
+        match self {
+            Self::NonUTF8 => (),
+            _ => panic!("Called unwrap_non_utf8 on non-utf8 error"),
+        }
+    }
+}
+
+impl From<IOError> for Error {
+    fn from(value: IOError) -> Self {
+        Self::IoError(value)
+    }
+}
+
+
+impl Response {
+    /// Tries to read a [`char`] from a reader.
+    /// If data was read, but not a valid char returns [`Error::NonUTF8`].
+    /// If no data was read returns [`IOErrorKind::UnexpectedEof`]
+    fn read_char<R: Read>(r: &mut R) -> Result<char, Error> {
+        let mut buf = [0;4];
+        r.read_exact(&mut buf[0..1])?;
+
+        let utf_8_len = match buf[0] {
+            0b0000_0000..=0b0111_1111 => 1,
+            0b1100_0000..=0b1101_1111 => 2,
+            0b1110_0000..=0b1110_1111 => 3,
+            0b1111_0000..=0b1111_0111 => 4,
+            _ =>  return Err(Error::NonUTF8)
+        };
+
+        if utf_8_len == 1 {
+            return Ok(buf[0].into())
+        } else {
+            if r.read_exact(&mut buf[1..utf_8_len]).is_err() {
+                return Err(Error::NonUTF8)
+            }
+        }
+
+        match str::from_utf8(&buf[0..utf_8_len]) {
+            Ok(s) => Ok(s.chars().next().unwrap()),
+            Err(_) => Err(Error::NonUTF8)
+        }
+    }
+
+
+    /// Tries to read a line of [`String`] from a reader.
+    /// A line is any piece of text seperated by a \r\n.
+    /// 
+    /// 
+    /// If data was read, but not a valid char returns [`Error::NonUTF8`].
+    /// If no data was read returns an empty string
+    fn read_line<R: Read>(r: &mut R) -> Result<String, Error> {
+        let mut s = String::new();
+
+        let mut carriage = false;
+        loop {
+            let c = match Self::read_char(r) {
+                Ok(c) => c,
+                Err(e) => {
+                    if e.is_io_error() {
+                        return Ok(s)
+                    } else {
+                        return Err(e)
+                    }
+                }
+            };
+
+            if c == '\r' {
+                carriage = true;
+            } else if c == '\n' && carriage {
+                return Ok(s)
+            } else if carriage {
+                s.push('\r');
+                s.push(c);
+                carriage = false;
+            } else {
+                s.push(c);
+            }
+        }
+    }
+
+    /// Reads a response from [`TcpStream`]
+    pub fn read_from_stream(stream: &mut TcpStream) /*-> Result<Self, Error> */ {
+        //let mut buf = [0;];
+    }
+
+    /// Reads HTTP version and status
+    fn read_version_status(stream: &mut TcpStream) -> Result<HttpStatus, Error> {
+        let line = Self::read_line(stream)?;
+        
+        let mut fields = line.split(" ");
+        let version = fields.next().ok_or(Error::ProtocolDeviation)?;
+        let code = fields.next().ok_or(Error::ProtocolDeviation)?;
+        let code = code.parse::<u16>().map_err(|_| Error::ProtocolDeviation)?;
+        let mut message = fields.next().ok_or(Error::ProtocolDeviation)?.to_string();
+
+        for s in fields {
+            message += s;
+        }
+
+        if version != "HTTP/1.1" {
+            return Err(Error::IncorrectValue { 
+                expected: "HTTP/1.1", 
+                got: version.to_string() 
+            })
+        } else if !(100..600).contains(&code) {
+            return Err(Error::ProtocolDeviation)
+        }
+
+        Ok(HttpStatus {
+            code,
+            message
+        })
+    }
+}

@@ -32,7 +32,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut response = String::new();
     tls.read_to_string(&mut response)?;
 
-    //println!("{response}");
-
     Ok(())
 }

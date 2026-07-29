@@ -1,6 +1,10 @@
 #[cfg(test)]
 mod test;
 
+/// Related to sending and receiving HTTP requests/responss
+pub mod http;
+
+
 pub mod card;
 
 /// Related to deserializing JSON
