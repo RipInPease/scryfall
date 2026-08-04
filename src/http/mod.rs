@@ -12,6 +12,7 @@ pub struct Response {
     pub data: Box<[u8]>
 }
 
+#[derive(Debug, PartialEq)]
 pub struct HttpStatus {
     pub code: u16,
     pub message: String
@@ -156,11 +157,12 @@ impl Response {
 
 
     /// Tries to read a line of [`String`] from a reader.
-    /// A line is any piece of text seperated by a \r\n.
+    /// A line is any piece of text seperated by a newline
     /// 
     /// 
     /// If data was read, but not a valid char returns [`Error::NonUTF8`].
     /// If no data was read returns an empty string
+    #[cfg(windows)]
     fn read_line<R: Read>(r: &mut R) -> Result<String, Error> {
         let mut s = String::new();
 
@@ -191,15 +193,45 @@ impl Response {
         }
     }
 
+    /// Tries to read a line of [`String`] from a reader.
+    /// A line is any piece of text seperated by a newline
+    /// 
+    /// 
+    /// If data was read, but not a valid char returns [`Error::NonUTF8`].
+    /// If no data was read returns an empty string
+    #[cfg(unix)]
+    fn read_line<R: Read>(r: &mut R) -> Result<String, Error> {
+        let mut s = String::new();
+
+        loop {
+            let c = match Self::read_char(r) {
+                Ok(c) => c,
+                Err(e) => {
+                    if e.is_io_error() {
+                        return Ok(s)
+                    } else {
+                        return Err(e)
+                    }
+                }
+            };
+
+            if c == '\n' {
+                return Ok(s)
+            } else {
+                s.push(c);
+            }
+        }
+    }
+
     /// Reads a response from [`TcpStream`]
     pub fn read_from_stream(stream: &mut TcpStream) /*-> Result<Self, Error> */ {
         //let mut buf = [0;];
     }
 
     /// Reads HTTP version and status
-    fn read_version_status(stream: &mut TcpStream) -> Result<HttpStatus, Error> {
+    fn read_version_status<R: Read>(stream: &mut R) -> Result<HttpStatus, Error> {
         let line = Self::read_line(stream)?;
-        
+
         let mut fields = line.split(" ");
         let version = fields.next().ok_or(Error::ProtocolDeviation)?;
         let code = fields.next().ok_or(Error::ProtocolDeviation)?;
@@ -223,5 +255,23 @@ impl Response {
             code,
             message
         })
+    }
+
+    /// Reads HTTP headers
+    fn read_headers<R: Read>(stream: &mut R) -> Result<HashMap<String, String>, Error>  {
+        let mut headers = HashMap::new();
+        
+        while let line = Self::read_line(stream)? && line.len() > 0 {
+            let (header, val) = line
+                .split_once(":")
+                .ok_or(Error::ProtocolDeviation)?;
+
+            let header = header.to_string();
+            let val = val.trim().to_string();
+
+            headers.insert(header, val);
+        }
+
+        Ok(headers)
     }
 }
