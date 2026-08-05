@@ -274,4 +274,19 @@ impl Response {
 
         Ok(headers)
     }
+
+    /// Reads the data portion of HTTP response
+    fn read_data<R: Read>(stream: &mut R) -> Result<Box<[u8]>, Error> {
+        let mut data: Vec<u8> = Vec::new();
+        while let line = Self::read_line(stream)? && line.len() > 0 {
+            let chunk_size = line.parse::<usize>().map_err(|_| Error::ProtocolDeviation)?;
+
+            let mut chunk =  vec![0; chunk_size];
+            stream.read_exact(&mut chunk)?;
+
+            data.extend(chunk.into_iter());
+        }
+
+        Ok(data.into_boxed_slice())
+    }
 }
