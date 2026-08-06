@@ -280,11 +280,13 @@ impl Response {
         let mut data: Vec<u8> = Vec::new();
         while let line = Self::read_line(stream)? && line.len() > 0 {
             let chunk_size = line.parse::<usize>().map_err(|_| Error::ProtocolDeviation)?;
-
             let mut chunk =  vec![0; chunk_size];
+            
             stream.read_exact(&mut chunk)?;
-
             data.extend(chunk.into_iter());
+
+            // This read_line is to read away the potential new line char
+            Self::read_line(stream)?;
         }
 
         Ok(data.into_boxed_slice())

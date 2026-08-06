@@ -75,3 +75,13 @@ fn read_headers_1() {
 
     assert_eq!(headers, should);
 }
+
+#[test]
+fn read_data_1() {
+    let mut file = std::fs::File::open("src/http/test/headers.txt").unwrap();
+    Response::read_version_status(&mut file).unwrap();
+    Response::read_headers(&mut file).unwrap();
+    let data = Response::read_data(&mut file).unwrap();
+    
+    assert_eq!(&(*data), b"abcdefghijklmnopq");
+}
