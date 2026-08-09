@@ -4,6 +4,8 @@ use std::sync::Arc;
 
 use rustls::{ClientConfig, ClientConnection, RootCertStore, StreamOwned};
 
+use scryfall::http;
+
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut root_store = RootCertStore::empty();
@@ -22,15 +24,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut tls = StreamOwned::new(conn, tcp);
 
     tls.write_all(
-        b"GET /cards/search?q=o:%22loses%20all%20abilities%22 HTTP/1.1\r\n\
+        b"GET /cards/search?q=Asmora HTTP/1.1\r\n\
         Host: api.scryfall.com\r\n\
         User-Agent: rustls-demo/0.1\r\n\
         Accept: application/json\r\n\
         Connection: close\r\n\r\n",
     )?;
 
-    let mut response = String::new();
-    tls.read_to_string(&mut response)?;
+    //let mut response = String::new();
+    //tls.read_to_string(&mut response)?;
+    //std::fs::write("output.txt", response.as_bytes()).unwrap();
+    
+    let response = http::Response::read_from_stream(&mut tls).unwrap();
+    let fmt = format!("{:#?}", response);
+    std::fs::write("http_response.txt", fmt.as_bytes()).unwrap();
+    
 
     Ok(())
 }

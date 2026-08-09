@@ -6,6 +6,7 @@ use std::net::TcpStream;
 use std::io::{Read, Error as IOError};
 
 /// Only for HTTP 1.1
+#[derive(Debug, PartialEq)]
 pub struct Response {
     pub status_code: HttpStatus,
     pub headers: HashMap<String, String>,
@@ -224,8 +225,16 @@ impl Response {
     }
 
     /// Reads a response from [`TcpStream`]
-    pub fn read_from_stream(stream: &mut TcpStream) /*-> Result<Self, Error> */ {
-        //let mut buf = [0;];
+    pub fn read_from_stream<R: Read>(stream: &mut R) -> Result<Self, Error>  {
+        let status_code = Self::read_version_status(stream)?;
+        let headers = Self::read_headers(stream)?;
+        let data = Self::read_data(stream)?;
+
+        Ok(Self {
+            status_code,
+            headers,
+            data
+        })
     }
 
     /// Reads HTTP version and status
@@ -279,7 +288,7 @@ impl Response {
     fn read_data<R: Read>(stream: &mut R) -> Result<Box<[u8]>, Error> {
         let mut data: Vec<u8> = Vec::new();
         while let line = Self::read_line(stream)? && line.len() > 0 {
-            let chunk_size = line.parse::<usize>().map_err(|_| Error::ProtocolDeviation)?;
+            let chunk_size = Self::hex_to_dec(line).map_err(|_| Error::ProtocolDeviation)?;
             let mut chunk =  vec![0; chunk_size];
             
             stream.read_exact(&mut chunk)?;
@@ -290,5 +299,43 @@ impl Response {
         }
 
         Ok(data.into_boxed_slice())
+    }
+
+    /// Converts a hex [`String`] to decimal [`usize`]
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if the string to parse is larger than [`usize`]
+    fn hex_to_dec(s: String) -> Result<usize, ()> {
+        let mut res = 0;
+
+        for c in s.chars() {
+            if !c.is_digit(16) {
+                return Err(());
+            }
+
+            let digit = Self::hex_digit_to_dec(c)?;
+            res *= 16;
+            res += digit;
+            
+        }
+
+        Ok(res)
+    }
+
+    /// Converts a hex char to decimal
+    fn hex_digit_to_dec(c: char) -> Result<usize, ()> {
+        match u8::try_from(c) {
+            Ok(v @ b'0'..=b'9') => {
+                Ok((v - b'0') as usize)
+            },
+            Ok(v @ b'a'..=b'f') => {
+                Ok((v - b'a' + 10) as usize)
+            },
+            Ok(v @ b'A'..=b'F') => {
+                Ok((v - b'A' + 10) as usize)
+            },
+            _ => Err(())
+        }
     }
 }
