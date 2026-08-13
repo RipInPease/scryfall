@@ -170,7 +170,7 @@ fn read_string_out_quotes_8() {
 }
 
 #[test]
-fn read_field_string() {
+fn read_field_string_1() {
     let s = "\"FieldName\": \"Hello, World!\"";
     let mut i = 0;
     let res = read_field(s, &mut i).unwrap();
@@ -178,6 +178,18 @@ fn read_field_string() {
     assert_eq!(
         res,
         (String::from("FieldName"), DesValue::String(String::from("Hello, World!")))
+    )
+}
+
+#[test]
+fn read_field_string_2() {
+    let s = "\"Unicode\": \"Unicode: \\u003d\"";
+    let mut i = 0;
+    let res = read_field(s, &mut i).unwrap();
+
+    assert_eq!(
+        res,
+        (String::from("Unicode"), DesValue::String(String::from("Unicode: =")))
     )
 }
 
@@ -206,7 +218,7 @@ fn read_field_bool_false() {
 }
 
 #[test]
-fn read_field_num1() {
+fn read_field_num_1() {
     let s = "\"FieldName\": 123.4";
     let mut i = 0;
     let res = read_field(s, &mut i).unwrap();
@@ -218,7 +230,7 @@ fn read_field_num1() {
 }
 
 #[test]
-fn read_field_num2() {
+fn read_field_num_2() {
     let s = "\"FieldName\": 1234";
     let mut i = 0;
     let res = read_field(s, &mut i).unwrap();
@@ -230,7 +242,7 @@ fn read_field_num2() {
 }
 
 #[test]
-fn read_field_num3() {
+fn read_field_num_3() {
     let s = "\"FieldName\": 12.3.4";
     let mut i = 0;
     let res = read_field(s, &mut i);
@@ -242,7 +254,7 @@ fn read_field_num3() {
 }
 
 #[test]
-fn read_field_num4() {
+fn read_field_num_4() {
     let s = "\"FieldName\": -123";
     let mut i = 0;
     let res = read_field(s, &mut i).unwrap();
@@ -254,7 +266,7 @@ fn read_field_num4() {
 }
 
 #[test]
-fn read_field_num5() {
+fn read_field_num_5() {
     let s = "\"FieldName\": -12-3";
     let mut i = 0;
     let res = read_field(s, &mut i);

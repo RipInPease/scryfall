@@ -1,3 +1,5 @@
+use std::str::CharIndices;
+
 #[cfg(test)]
 mod test;
 
@@ -272,7 +274,21 @@ pub enum ParseError {
     MismatchedType,
 
     /// Where a value is passed too many times
-    DuplicateValue
+    DuplicateValue,
+
+    /// For an unkown escape char
+    UnkownEscapeChar(char),
+
+    /// For a unicode value that we don't know what the fuck is
+    UnkownUnicode(u32),
+
+    /// When we expected an escape char, but none was given
+    ExpectedEscapeChar,
+
+    /// When we expected a hex character, but something else was given.
+    /// Returns the [`char`] that was given.
+    ExpectedHex(char),
+
 }
 
 /// Will try to parse an object.
@@ -367,19 +383,10 @@ fn read_string_in_quotes(s: &str, i: &mut usize) -> Result<String, ParseError> {
     let mut res = String::new();
     let mut chars = s[*i..].char_indices();
 
-    // Are we currently readind an escape char?
-    let mut escape = false;
-
     while let Some((offset, c)) = chars.next() {
-        if escape {
-            match escape_char(c) {
-                None    => return Err(ParseError::UnexpectedToken(c)),
-                Some(c) => res.push(c)
-            }
-            
-            escape = false;
-        } else if c == '\\' {
-            escape = true
+        if c == '\\' {
+            let c = escape_char(&mut chars)?;
+            res.push(c);
         } else if c == '\"' {
             *i += offset + c.len_utf8();
             return Ok(res)
@@ -391,19 +398,35 @@ fn read_string_in_quotes(s: &str, i: &mut usize) -> Result<String, ParseError> {
     return Err(ParseError::ExpectedToken('\"'));
 }
 
-/// Returns [`None`] if this is an unkown escape char
-fn escape_char(c: char) -> Option<char> {
-    match c {
-        '\'' => Some('\''),
-        '\"' => Some('\"'),
-        '\\' => Some('\\'),
-        'n'  => Some('\n'),
-        'r'  => Some('\r'),
-        't'  => Some('\t'),
-        'b'  => Some('\x08'),
-        'f'  => Some('\x0C'),
-        _    => None,
+/// Returns [`ParseError::UnkownEscapeChar`] if this is an 
+/// unkown escape char was given, or [`ParseError::ExpectedEscapeChar`]
+/// if no escape char was given.
+fn escape_char(chars: &mut CharIndices) -> Result<char, ParseError> {
+    match chars.next().ok_or(ParseError::ExpectedEscapeChar)?.1 {
+        '\'' => Ok('\''),
+        '\"' => Ok('\"'),
+        '\\' => Ok('\\'),
+        'n'  => Ok('\n'),
+        'r'  => Ok('\r'),
+        't'  => Ok('\t'),
+        'b'  => Ok('\x08'),
+        'f'  => Ok('\x0C'),
+        'u'  => unicode_char(chars),
+        v    => Err(ParseError::UnkownEscapeChar(v)),
     }
+}
+
+fn unicode_char(chars: &mut CharIndices) -> Result<char, ParseError> {
+    let mut val: u32 = 0;
+    for _ in 0..4 {
+        let c = chars.next().ok_or(ParseError::ExpectedEscapeChar)?.1;
+        let v = crate::utils::hex_digit_to_dec(c).map_err(|_| ParseError::ExpectedHex(c))?;
+        val *= 16;
+        val += v as u32;
+    }
+
+    let c = char::from_u32(val).ok_or(ParseError::UnkownUnicode(val))?;
+    Ok(c)
 }
 
 /// Reads a string not enclosed in quotes. This reads until first whitespace after chars, '}', ',' or ']'

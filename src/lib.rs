@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod test;
 
+/// Helper functions
+pub(crate) mod utils;
+
 /// Related to sending and receiving HTTP requests/responss
 pub mod http;
 
@@ -24,15 +27,15 @@ impl UUID {
     fn ascii_to_hex(val: u8) -> Result<u8, ()> {
         // ascii value for digits 0-9
         if val >= b'0' && val <= b'9' {
-            Ok(val - 48)
+            Ok(val - b'0')
         } 
         // ascii value for digits A-F
         else if val >= b'A' && val <= b'F' {
-            Ok(val - 55)
+            Ok(val - b'A' + 10)
         }
         // ascii value for digits a-f
         else if val >= b'a' && val <= b'f' {
-            Ok(val - 87)
+            Ok(val - b'a' + 10)
         } else {
             Err(())
         }

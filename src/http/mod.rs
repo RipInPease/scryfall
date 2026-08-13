@@ -314,28 +314,12 @@ impl Response {
                 return Err(());
             }
 
-            let digit = Self::hex_digit_to_dec(c)?;
+            let digit = crate::utils::hex_digit_to_dec(c)?;
             res *= 16;
             res += digit;
             
         }
 
-        Ok(res)
-    }
-
-    /// Converts a hex char to decimal
-    fn hex_digit_to_dec(c: char) -> Result<usize, ()> {
-        match u8::try_from(c) {
-            Ok(v @ b'0'..=b'9') => {
-                Ok((v - b'0') as usize)
-            },
-            Ok(v @ b'a'..=b'f') => {
-                Ok((v - b'a' + 10) as usize)
-            },
-            Ok(v @ b'A'..=b'F') => {
-                Ok((v - b'A' + 10) as usize)
-            },
-            _ => Err(())
-        }
+        Ok(res as usize)
     }
 }
