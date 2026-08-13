@@ -13,3 +13,7 @@ pub use uri::URI;
 /// Error object
 pub mod error;
 pub use error::Error;
+
+/// Rulings for a card
+pub mod ruling;
+pub use ruling::Ruling;
