@@ -3,17 +3,21 @@ pub mod card;
 pub use card::Card;
 
 /// Universal unique id
-pub mod uuid;
+mod uuid;
 pub use uuid::UUID;
 
 /// Unique resource identifier
-pub mod uri;
+mod uri;
 pub use uri::URI;
 
 /// Error object
-pub mod error;
+mod error;
 pub use error::Error;
 
 /// Rulings for a card
-pub mod ruling;
+mod ruling;
 pub use ruling::Ruling;
+
+/// Illustrated symbol that may appear in card’s mana cost or Oracle text
+mod card_symbol;
+pub use card_symbol::CardSymbol;
