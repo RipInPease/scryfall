@@ -1330,7 +1330,6 @@ impl Deserialize for Card {
 
 
         for (field, val) in fields {
-            println!("Field: {field}");
             match &field[..] {
                 // Foil and Nonfoil are under the object Finishes
                 "foil" | "nonfoil" => {}

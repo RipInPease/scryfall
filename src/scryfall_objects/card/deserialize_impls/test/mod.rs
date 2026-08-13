@@ -1,5 +1,5 @@
 use crate::deserialize::*;
-use crate::card::*;
+use super::*;
 use crate::URI;
 
 #[test]
@@ -224,7 +224,7 @@ fn image_uris_1() {
 
 #[test]
 fn card_face_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/card_face.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/card_face.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let card_face = CardFace::deserialize(tokens);
@@ -233,7 +233,7 @@ fn card_face_1() {
 
 #[test]
 fn related_card_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/related_card.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/related_card.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let related_card = RelatedCard::deserialize(tokens);
@@ -263,7 +263,7 @@ fn legality_1() {
 
 #[test]
 fn legalities_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/legalities.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/legalities.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let legalities = Legalities::deserialize(tokens).unwrap();
@@ -326,7 +326,7 @@ fn border_color_1() {
 
 #[test]
 fn finishes_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/finishes.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/finishes.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let obj = tokens.unwrap_object();
@@ -346,7 +346,7 @@ fn finishes_1() {
 
 #[test]
 fn frame_effects_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/frame_effects.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/frame_effects.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let obj = tokens.unwrap_object();
@@ -411,7 +411,7 @@ fn frame_1() {
 
 #[test]
 fn games_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/games.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/games.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let obj = tokens.unwrap_object();
@@ -454,7 +454,7 @@ fn image_status_1() {
 
 #[test]
 fn prices_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/prices.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/prices.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let prices = Prices::deserialize(tokens);
@@ -473,7 +473,7 @@ fn prices_1() {
 
 #[test]
 fn purchase_uris_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/purchase_uris.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/purchase_uris.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let prices = PurchaseURIs::deserialize(tokens);
@@ -516,7 +516,7 @@ fn rarity_1() {
 
 #[test]
 fn related_uris_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/related_uris.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/related_uris.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let prices = RelatedURIs::deserialize(tokens);
@@ -560,7 +560,7 @@ fn security_stamp_1() {
 
 #[test]
 fn pewview_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/preview.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/preview.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let preview = Preview::deserialize(tokens);
@@ -576,7 +576,7 @@ fn pewview_1() {
 
 #[test]
 fn card_1() {
-    let s = std::fs::read_to_string("src/card/deserialize_impls/test/card.json").unwrap();
+    let s = std::fs::read_to_string("src/scryfall_objects/card/deserialize_impls/test/card.json").unwrap();
     let tokens = parse_json_string(s).unwrap();
 
     let _ = Card::deserialize(tokens).unwrap();
