@@ -1,8 +1,5 @@
 use deserialize::{DesValue, Deserialize, ParseError};
 
-#[cfg(test)]
-mod test;
-
 /// Helper functions
 pub(crate) mod utils;
 

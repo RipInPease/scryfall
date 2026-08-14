@@ -306,7 +306,7 @@ impl Response {
     /// 
     /// Panics if the string to parse is larger than [`usize`]
     fn hex_to_dec(s: String) -> Result<usize, ()> {
-        let mut res = 0;
+        let mut res: usize = 0;
 
         for c in s.chars() {
             if !c.is_digit(16) {
@@ -315,10 +315,9 @@ impl Response {
 
             let digit = crate::utils::hex_digit_to_dec(c)?;
             res *= 16;
-            res += digit;
-            
+            res += digit as usize;
         }
 
-        Ok(res as usize)
+        Ok(res)
     }
 }
