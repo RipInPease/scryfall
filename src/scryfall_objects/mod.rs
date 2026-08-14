@@ -40,3 +40,53 @@ pub enum ScryfallObject {
     CardSymbol(CardSymbol),
     Catalog(Catalog)
 }
+
+impl ScryfallObject {
+    /// Returns `true` if this is of the type [`Self::List`]
+    pub fn is_list(&self) -> bool {
+        match self {
+            Self::List(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Returns `true` if this is of the type [`Self::Card`]
+    pub fn is_card(&self) -> bool {
+        match self {
+            Self::Card(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Returns `true` if this is of the type [`Self::Error`]
+    pub fn is_error(&self) -> bool {
+        match self {
+            Self::Error(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Returns `true` if this is of the type [`Self::Ruling`]
+    pub fn is_ruling(&self) -> bool {
+        match self {
+            Self::Ruling(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Returns `true` if this is of the type [`Self::CardSymbol`]
+    pub fn is_card_symbol(&self) -> bool {
+        match self {
+            Self::CardSymbol(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Returns `true` if this is of the type [`Self::Catalog`]
+    pub fn is_catalog(&self) -> bool {
+        match self {
+            Self::Catalog(_) => true,
+            _ => false,
+        }
+    }
+}

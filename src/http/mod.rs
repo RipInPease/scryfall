@@ -2,7 +2,6 @@
 mod test;
 
 use std::collections::HashMap;
-use std::net::TcpStream;
 use std::io::{Read, Error as IOError};
 
 /// Only for HTTP 1.1

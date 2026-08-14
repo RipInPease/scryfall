@@ -144,6 +144,7 @@ pub struct ImageURIs {
 /// Multiface cards have a card_faces property 
 /// containing at least two [`CardFace`] objects. 
 /// Those objects have these properties
+#[derive(Debug, PartialEq)]
 pub struct CardFace {
     /// The name of the illustrator of this card face. 
     /// Newly spoiled cards may not have this field yet
@@ -236,6 +237,7 @@ pub struct CardFace {
 /// or meld, etc) have a all_parts property that contains 
 /// Related Card objects. 
 /// Those objects have the following properties
+#[derive(Debug, PartialEq)]
 pub struct RelatedCard {
     /// An unique ID for this card in Scryfall’s database
     pub id          : UUID,
@@ -411,10 +413,10 @@ pub enum Rarity {
 /// Magic: The Gathering online resources
 #[derive(Debug, PartialEq)]
 pub struct RelatedURIs {
-    pub gatherer                    : URI,
-    pub tcgplayer_infinite_articles : URI,
-    pub tcgplayer_infinite_decks    : URI,
-    pub edhrec                      : URI
+    pub gatherer                    : Option<URI>,
+    pub tcgplayer_infinite_articles : Option<URI>,
+    pub tcgplayer_infinite_decks    : Option<URI>,
+    pub edhrec                      : Option<URI>
 }
 
 /// The security stamp on this card
@@ -432,7 +434,7 @@ pub enum SecurityStamp {
 #[derive(Debug, PartialEq)]
 pub struct Preview {
     /// The date this card was previewed
-    pub previewed_at        : Option<String>,
+    pub previewed_at: Option<String>,
 
     /// A link to the preview for this card
     pub source_uri  : Option<URI>,
@@ -441,6 +443,7 @@ pub struct Preview {
     pub source      : Option<String>
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Card {
     pub core_fields : CardCore, 
     pub gameplay    : CardGameplay,
@@ -448,6 +451,7 @@ pub struct Card {
 }
 
 /// Cards have these core properties
+#[derive(Debug, PartialEq)]
 pub struct CardCore {
     /// This card's arena ID, if any
     pub arena_id            : Option<i32>,
@@ -501,6 +505,7 @@ pub struct CardCore {
 }
 
 /// Cards have these properties relevant to the game rules
+#[derive(Debug, PartialEq)]
 pub struct CardGameplay {
     /// If this card is closely related to other cards, 
     /// this property will be an array with [`RelatedCard`]
@@ -602,6 +607,7 @@ pub struct CardGameplay {
 
 /// Cards have the following properties 
 /// unique to their particular re/print
+#[derive(Debug, PartialEq)]
 pub struct CardPrint {
     /// The name of the illustrator of this card. 
     /// Newly spoiled cards may not have this field yet
@@ -622,7 +628,7 @@ pub struct CardPrint {
 
     /// The Scryfall ID for the card back design 
     /// present on this card
-    pub card_back_id        : UUID,
+    pub card_back_id        : Option<UUID>,
 
     /// This card’s collector number. 
     /// Note that collector numbers can contain non-numeric 
@@ -647,7 +653,7 @@ pub struct CardPrint {
     pub flavor_text         : Option<String>,
 
     /// This card’s [`FrameEffects`]
-    pub frame_effects       : FrameEffects,
+    pub frame_effects       : Option<FrameEffects>,
 
     /// The card's [`Frame`] layout
     pub frame               : Frame,
@@ -703,7 +709,7 @@ pub struct CardPrint {
 
     /// [`PurchaseURIs`] to this card’s listing on major marketplaces. 
     /// Omitted if the card is unpurchaseable
-    pub purchase_uris       : PurchaseURIs,
+    pub purchase_uris       : Option<PurchaseURIs>,
 
     /// This card's [`Rarity`]
     pub rarity              : Rarity,
@@ -760,5 +766,5 @@ pub struct CardPrint {
     pub watermark           : Option<String>,
 
     /// The date this card was previewed
-    pub preview           : Preview
+    pub preview             : Option<Preview>
 }

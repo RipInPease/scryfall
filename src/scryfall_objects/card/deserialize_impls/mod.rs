@@ -3,7 +3,6 @@ mod test;
 
 use super::*;
 use crate::deserialize::{Deserialize, DesValue, ParseError};
-use crate::scryfall_objects::*;
 
 impl Deserialize for Color {
     fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
@@ -125,7 +124,7 @@ impl Deserialize for ImageURIs {
         for (field, val) in fields {
             match &field[..] {
                 "png"         => {
-                    let uri = URI::deserialize(val)?;
+                    let uri = URI::deserialize(val).unwrap();
                     png = Some(uri)
                 },
                 "small"       => {
@@ -1157,10 +1156,10 @@ impl Deserialize for RelatedURIs {
         }
 
         Ok(Self {
-            gatherer:                    gatherer.ok_or(ParseError::ValueExpected)?,
-            tcgplayer_infinite_articles: tcgplayer_infinite_articles.ok_or(ParseError::ValueExpected)?,  
-            tcgplayer_infinite_decks:    tcgplayer_infinite_decks.ok_or(ParseError::ValueExpected)?,  
-            edhrec:                      edhrec.ok_or(ParseError::ValueExpected)?,
+            gatherer,
+            tcgplayer_infinite_articles,
+            tcgplayer_infinite_decks,
+            edhrec,
         })
     }
 }
@@ -1992,7 +1991,6 @@ impl Deserialize for Card {
             }
         }
 
-        
         let core_fields = CardCore {
             arena_id,
             id: id.ok_or(ParseError::ValueExpected)?,
@@ -2044,14 +2042,14 @@ impl Deserialize for Card {
             attraction_lights,
             booster: booster.ok_or(ParseError::ValueExpected)?,
             border_color: border_color.ok_or(ParseError::ValueExpected)?,
-            card_back_id: card_back_id.ok_or(ParseError::ValueExpected)?,
+            card_back_id,
             collector_number: collector_number.ok_or(ParseError::ValueExpected)?,
             content_warning,
             digital: digital.ok_or(ParseError::ValueExpected)?,
             finishes: finishes.ok_or(ParseError::ValueExpected)?,
             flavor_name,
             flavor_text,
-            frame_effects: frame_effects.ok_or(ParseError::ValueExpected)?,
+            frame_effects,
             frame: frame.ok_or(ParseError::ValueExpected)?,
             full_art: full_art.ok_or(ParseError::ValueExpected)?,
             games: games.ok_or(ParseError::ValueExpected)?,
@@ -2067,7 +2065,7 @@ impl Deserialize for Card {
             printed_type_line,
             promo: promo.ok_or(ParseError::ValueExpected)?,
             promo_types,
-            purchase_uris: purchase_uris.ok_or(ParseError::ValueExpected)?,
+            purchase_uris,
             rarity: rarity.ok_or(ParseError::ValueExpected)?,
             related_uris: related_uris.ok_or(ParseError::ValueExpected)?,
             released_at: released_at.ok_or(ParseError::ValueExpected)?,
@@ -2085,7 +2083,7 @@ impl Deserialize for Card {
             variation_of: variation_of,
             security_stamp,
             watermark,
-            preview: preview.ok_or(ParseError::ValueExpected)?,
+            preview,
         };
     
         Ok(Self { core_fields, gameplay, print_fields })

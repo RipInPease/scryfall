@@ -1,6 +1,5 @@
 use crate::deserialize::*;
 use super::*;
-use crate::scryfall_objects::*;
 
 #[test]
 fn color_1() {
@@ -522,10 +521,10 @@ fn related_uris_1() {
     let prices = RelatedURIs::deserialize(tokens);
 
     let should = RelatedURIs {
-        gatherer: URI(String::from("https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=522262&printed=false")),
-        tcgplayer_infinite_articles: URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DGalion%252C%2BElvenking%2527s%2BButler")),
-        tcgplayer_infinite_decks: URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DGalion%252C%2BElvenking%2527s%2BButler")),
-        edhrec: URI(String::from("https://edhrec.com/route/?cc=Galion%2C+Elvenking%27s+Butler")),
+        gatherer: Some(URI(String::from("https://gatherer.wizards.com/Pages/Card/Details.aspx?multiverseid=522262&printed=false"))),
+        tcgplayer_infinite_articles: Some(URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Farticles&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Farticles%3FproductLineName%3Dmagic%26q%3DGalion%252C%2BElvenking%2527s%2BButler"))),
+        tcgplayer_infinite_decks: Some(URI(String::from("https://partner.tcgplayer.com/c/4931599/1830156/21018?subId1=api&trafcat=tcgplayer.com%2Fsearch%2Fdecks&u=https%3A%2F%2Fwww.tcgplayer.com%2Fsearch%2Fdecks%3FproductLineName%3Dmagic%26q%3DGalion%252C%2BElvenking%2527s%2BButler"))),
+        edhrec: Some(URI(String::from("https://edhrec.com/route/?cc=Galion%2C+Elvenking%27s+Butler"))),
     };
 
     assert_eq!(prices, Ok(should));

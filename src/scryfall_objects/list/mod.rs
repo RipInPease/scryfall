@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod test;
+
 use super::*;
 use crate::deserialize::{Deserialize, DesValue, ParseError};
 
@@ -18,8 +21,39 @@ pub struct List {
 impl List {
     /// Reads a single entry in `Self.Data`
     fn parse_data_entry(tokens: DesValue) -> Result<ScryfallObject, ParseError> {
-        let fields = tokens.object_or(ParseError::MismatchedType)?;
-        
+        if let DesValue::Object(fields) = &tokens {
+            match Self::inner_object(fields)? {
+                "card" => {
+                    let res = Card::deserialize(tokens);
+                    return Ok(ScryfallObject::Card(res?))
+                },
+                "error" => return Ok(ScryfallObject::Error(Error::deserialize(tokens)?)),
+                "ruling" => return Ok(ScryfallObject::Ruling(Ruling::deserialize(tokens)?)),
+                "catalog" => return Ok(ScryfallObject::Catalog(Catalog::deserialize(tokens)?)),
+                "card_symbol" => return Ok(ScryfallObject::CardSymbol(CardSymbol::deserialize(tokens)?)),
+                s => return Err(ParseError::UnkownVal(s.to_string()))
+            }
+        } else {
+            return Err(ParseError::MismatchedType)
+        }
+    }
+
+    /// Gives the object a [`DesValue`] contains.
+    /// 
+    /// Returns [`ParseError::ValueExpected`] if the inner object did
+    /// contain an "object field"
+    /// or [ParseError::MismatchedType] if the value of the "object"
+    /// was not of type [`DesValue::String`]
+    fn inner_object<'a>(fields: &'a [(String, DesValue)]) -> Result<&'a str, ParseError> {
+        for (field, val) in fields {
+            if &field[..] == "object" {
+                if let DesValue::String(s) = val {
+                    return Ok(s)
+                } else {
+                    return Err(ParseError::MismatchedType)
+                }
+            }
+        }
 
         Err(ParseError::ValueExpected)
     }
