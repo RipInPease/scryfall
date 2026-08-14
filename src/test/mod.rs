@@ -1,5 +1,5 @@
 use crate::deserialize::*;
-use crate::*;
+use crate::scryfall_objects::*;
 
 #[test]
 fn uuid_1() {

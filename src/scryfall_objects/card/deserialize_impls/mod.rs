@@ -3,10 +3,10 @@ mod test;
 
 use super::*;
 use crate::deserialize::{Deserialize, DesValue, ParseError};
-use crate::URI;
+use crate::scryfall_objects::*;
 
 impl Deserialize for Color {
-    fn deserialize(tokens: DesValue) -> Result<Self, deserialize::ParseError>
+    fn deserialize(tokens: DesValue) -> Result<Self, ParseError>
     where Self: Sized
     {
         if let DesValue::String(s) = tokens {

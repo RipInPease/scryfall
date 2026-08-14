@@ -21,3 +21,22 @@ pub use ruling::Ruling;
 /// Illustrated symbol that may appear in card’s mana cost or Oracle text
 mod card_symbol;
 pub use card_symbol::CardSymbol;
+
+/// Contains an array of Magic datapoints (words, card values, etc)
+mod catalog;
+pub use catalog::Catalog;
+
+/// Represents a sequence of other [`ScryfallObject`]
+mod list;
+pub use list::List;
+
+
+/// All the objects scryfall has to offer
+pub enum ScryfallObject {
+    List(List),
+    Card(Card),
+    Error(Error),
+    Ruling(Ruling),
+    CardSymbol(CardSymbol),
+    Catalog(Catalog)
+}

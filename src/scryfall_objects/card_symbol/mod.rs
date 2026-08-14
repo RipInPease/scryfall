@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod test;
 
-use crate::{DesValue, Deserialize, ParseError, URI};
+use crate::{DesValue, Deserialize, ParseError};
+use crate::scryfall_objects::*;
 use super::card::Color;
 
 #[derive(Debug, PartialEq)]
@@ -32,6 +33,10 @@ pub struct CardSymbol {
     /// (also knowns as the converted mana cost). 
     /// Note that mana symbols from funny sets can have fractional mana values
     pub mana_value              : Option<f32>,
+
+    /// Should be the same as [`Self::mana_value`]
+    /// But Scryfall is dogshit and sends the same shit twice
+    pub cmc                     : Option<f32>,
 
     /// True if this symbol appears in a mana cost on any Magic card. 
     /// For example {20} has this field set to false 
@@ -72,6 +77,7 @@ impl Deserialize for CardSymbol {
         let mut transposable          : Option<bool>              = None;
         let mut represents_mana       : Option<bool>              = None;
         let mut mana_value            : Option<Option<f32>>       = None;
+        let mut cmc                   : Option<Option<f32>>       = None;
         let mut appears_in_mana_costs : Option<bool>              = None;
         let mut funny                 : Option<bool>              = None;
         let mut colors                : Option<Box<[Color]>>      = None;
@@ -81,7 +87,6 @@ impl Deserialize for CardSymbol {
         let mut svg_uri               : Option<Option<URI>>       = None;
 
         for (field, val) in fields {
-            println!("Parsing field: {field}");
             match &field[..] {
                 "object" => {
                     let s = val.string_or(ParseError::MismatchedType)?;
@@ -123,15 +128,22 @@ impl Deserialize for CardSymbol {
                     }
                     represents_mana = Some(val.bool_or(ParseError::MismatchedType)?);
                 },
-                // This does not return DuplicateValue
-                // because Scryfall gives BOTH mana_value and cmc
-                "mana_value" | "cmc" => {
+                "mana_value" => {
                     if val.is_null() {
                         mana_value = Some(None);
                     } else {
                         let n = val.num_or(ParseError::MismatchedType)?;
                         let n = n.parse::<f32>().or(Err(ParseError::UnkownVal(n)))?;
                         mana_value = Some(Some(n));
+                    }
+                },
+                "cmc" => {
+                    if val.is_null() {
+                        cmc = Some(None);
+                    } else {
+                        let n = val.num_or(ParseError::MismatchedType)?;
+                        let n = n.parse::<f32>().or(Err(ParseError::UnkownVal(n)))?;
+                        cmc = Some(Some(n));
                     }
                 },
                 "appears_in_mana_costs" => {
@@ -204,6 +216,7 @@ impl Deserialize for CardSymbol {
             english:               english.ok_or(ParseError::ValueExpected)?,
             transposable:          transposable.ok_or(ParseError::ValueExpected)?,
             represents_mana:       represents_mana.ok_or(ParseError::ValueExpected)?,
+            cmc:                   cmc.unwrap_or(None),
             mana_value:            mana_value.unwrap_or(None),
             appears_in_mana_costs: appears_in_mana_costs.ok_or(ParseError::ValueExpected)?,
             funny:                 funny.ok_or(ParseError::ValueExpected)?,

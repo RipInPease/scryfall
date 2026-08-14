@@ -1,6 +1,6 @@
 use crate::deserialize::*;
 use super::*;
-use crate::URI;
+use crate::scryfall_objects::*;
 
 #[test]
 fn color_1() {

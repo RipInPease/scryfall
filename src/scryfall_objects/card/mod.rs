@@ -1,4 +1,4 @@
-use crate::*;
+use crate::scryfall_objects::*;
 
 /// Where I implement Deseriliaze
 mod deserialize_impls;

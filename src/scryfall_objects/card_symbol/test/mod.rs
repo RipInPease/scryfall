@@ -1,5 +1,5 @@
 use super::CardSymbol;
-use crate::URI;
+use crate::scryfall_objects::*;
 use crate::deserialize::{Deserialize, parse_json_string};
 
 #[test]
@@ -17,6 +17,7 @@ fn deserialize_card_symbol_object() {
         transposable: false,
         represents_mana: false,
         mana_value: Some(0.0),
+        cmc: Some(0.0),
         appears_in_mana_costs: false,
         funny: false,
         colors: Box::new([]),

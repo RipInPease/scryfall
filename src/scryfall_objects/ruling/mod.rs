@@ -1,7 +1,8 @@
 #[cfg(test)]
 mod test;
 
-use crate::{DesValue, Deserialize, ParseError, UUID};
+use crate::scryfall_objects::*;
+use crate::{DesValue, Deserialize, ParseError};
 
 /// Rulings represent Oracle rulings, Wizards of the Coast set release notes, 
 /// or Scryfall notes for a particular card
