@@ -6,7 +6,7 @@ use rustls::{ClientConfig, ClientConnection, RootCertStore, StreamOwned};
 
 use gtk4 as gtk;
 use gtk::prelude::*;
-use gtk::{glib, Application, ApplicationWindow};
+use gtk::{glib, Application, ApplicationWindow, Widget};
 
 use scryfall::http;
 
@@ -36,27 +36,48 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Connection: close\r\n\r\n",
     )?;
 
-    let response = http::Response::read_from_stream(&mut tls).unwrap();
-    let fmt = format!("{:#?}", response);
-    std::fs::write("http_response.txt", fmt.as_bytes()).unwrap();
+    //let response = http::Response::read_from_stream(&mut tls).unwrap();
+    //let fmt = format!("{:#?}", response);
+    //std::fs::write("http_response.txt", fmt.as_bytes()).unwrap();
 
     Ok(())
 }
 
 fn start_app() -> glib::ExitCode {
-    let app = Application::builder()
-        .application_id("Scryfall, but made shitty!")
+    let app = gtk::Application::builder()
+        .application_id("com.shitty.scryfall")
         .build();
 
     app.connect_activate(|app| {
-       let window = ApplicationWindow::builder()
-       .application(app)
-        .default_height(480)
-        .default_width(640)
-        .build();
+        let window = gtk::ApplicationWindow::builder()
+            .application(app)
+            .title("Scryfall, but made shitty!")
+            .default_width(640)
+            .default_height(480)
+            .build();
 
+        let rows = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        rows.append(&search_bar());
+
+        window.set_child(Some(&rows));
         window.present();
     });
 
     app.run()
+}
+
+fn search_bar() -> gtk::Box {
+    let bar_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+
+    let bar_field = gtk::SearchEntry::builder()
+        .hexpand(true)
+        .build();
+
+    bar_field.connect_activate(|entry| {
+        println!("Searching for \"{}\"", entry.text());
+    });
+
+    bar_box.append(&bar_field);
+
+    bar_box
 }
