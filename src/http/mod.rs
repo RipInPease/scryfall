@@ -4,6 +4,17 @@ mod test;
 use std::collections::HashMap;
 use std::io::{Read, Error as IOError};
 
+/// Converts a human readable string query to acceptable http
+/// 
+/// # Example
+/// 
+/// `this is a query` returs `this%20is%20a%20query`
+pub fn query_string_to_http(s: &str) -> String {
+    let mut res = String::with_capacity(s.len() + 16);
+
+    res
+}
+
 /// Only for HTTP 1.1
 #[derive(Debug, PartialEq)]
 pub struct Response {
@@ -123,7 +134,6 @@ impl From<IOError> for Error {
         Self::IoError(value)
     }
 }
-
 
 impl Response {
     /// Tries to read a [`char`] from a reader.

@@ -59,6 +59,10 @@ fn start_app() -> glib::ExitCode {
         let rows = gtk::Box::new(gtk::Orientation::Vertical, 0);
         rows.append(&search_bar());
 
+        let button = gtk::Button::new();
+        button.set_vexpand(true);
+        rows.append(&button);
+
         window.set_child(Some(&rows));
         window.present();
     });
