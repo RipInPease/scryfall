@@ -1,4 +1,4 @@
-use super::*;
+use super::{Response, HttpStatus, query_string_to_http};
 
 #[test]
 fn read_char_1() {
@@ -84,4 +84,12 @@ fn read_data_1() {
     let data = Response::read_data(&mut file).unwrap();
     
     assert_eq!(&(*data), b"abcdefghijklmnopq");
+}
+
+#[test]
+fn query_string_to_http_1() {
+    let s = "this is a query";
+    let res = query_string_to_http(&s);
+
+    assert_eq!(res, "%74%68%69%73%20%69%73%20%61%20%71%75%65%72%79");
 }
