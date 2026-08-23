@@ -94,9 +94,40 @@ impl RestRequest {
     /// it would also return that
     pub (crate) fn string_and_data(self) -> (String, Option<String>) {
         let mut res = String::with_capacity(512);
-        let mut data = None;
-        
-        (res, data)
+        let mut res_data = None;
+
+        match self {
+            Self::DELETE { path } => {
+                res.push_str("DELETE ");
+                res.push_str(&path);
+            },
+            Self::GET { path, parameters } => {
+                res.push_str("GET ");
+                res.push_str(&path);
+
+                if parameters.len() > 0 {
+                    res.push('?');
+                    res.push_str(&Self::parameters_to_string(parameters));
+                }
+            },
+            Self::PATCH { path, data } => {
+                res.push_str("PATCH ");
+                res.push_str(&path);
+                res_data = Some(data)
+            },
+            Self::POST { path, data } => {
+                res.push_str("POST ");
+                res.push_str(&path);
+                res_data = Some(data)
+            },
+            Self::PUT { path, data } => {
+                res.push_str("PUT ");
+                res.push_str(&path);
+                res_data = Some(data)
+            }
+        }
+
+        (res, res_data)
     }
 
     /// Turns an array of GET parameters into a single String
