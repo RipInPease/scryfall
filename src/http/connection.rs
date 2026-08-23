@@ -89,8 +89,18 @@ pub enum RestRequest {
 }
 
 impl RestRequest {
+    /// Returns a string of how the REST API request would look.
+    /// If there is any data to be sent in the data portion of the HTTP request,
+    /// it would also return that
+    pub (crate) fn string_and_data(self) -> (String, Option<String>) {
+        let mut res = String::with_capacity(512);
+        let mut data = None;
+        
+        (res, data)
+    }
+
     /// Turns an array of GET parameters into a single String
-    pub fn parameters_to_string(parameters: Box<[(String, String)]>) -> String {
+    pub (crate) fn parameters_to_string(parameters: Box<[(String, String)]>) -> String {
         if parameters.len() == 0 {
             return String::new();
         }
