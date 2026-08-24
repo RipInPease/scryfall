@@ -31,12 +31,49 @@ impl<T: Read + Write> Connection<T> {
     pub fn rest_request(&mut self, request: RestRequest) -> Result<Response, Error> {
         let mut data = String::with_capacity(8192);
 
+        // Base_request_string is for example GET /path/to/get
+        let (base_request_string, request_data) = request.string_and_data();
+        data.push_str(&base_request_string);
+        data.push_str(" HTTP/1.1\r\n");
+
+        let request_data = request_data.unwrap_or(String::new());
+        let request_data = match self.header_transfer_type() {
+            TransferEncoding::Chunked => {
+                String::new()
+            },
+            TransferEncoding::ContentLength => {
+                self.headers.insert(
+                    "Content-Length".to_string(), 
+                    request_data.len().to_string()
+                );
+
+                request_data
+            }
+        };
+
         let header_string = Self::headers_to_string(&self.headers);
+        data.push_str(&header_string);
+        data.push_str(&request_data);
 
         self.write_all(data.as_bytes())?;
         let response = Response::read_from_stream(self)?;
         
         Ok(response)
+    }
+
+    /// Checks the transfer method. If no transfer method was set, 
+    /// defaults to [`TransferEncoding::ContentLength`].
+    /// 
+    /// If [`TransferEncoding::Chunked`] is set as well as some others by mistake,
+    /// removes all other conflincting headers
+    fn header_transfer_type(&mut self) -> TransferEncoding {
+        if self.headers.contains_key("Transfer-Encoding") {
+            self.headers.remove("Content-Length");
+            TransferEncoding::Chunked
+        } else {
+            self.headers.insert("Content-Lenth".to_string(), "0".to_string());
+            TransferEncoding::ContentLength
+        }
     }
 
     /// Turns an array of headers into a single String
@@ -52,6 +89,12 @@ impl<T: Read + Write> Connection<T> {
 
         res.push_str("\r\n");
         res
+    }
+
+    /// Turns a data string to chunked data string
+    fn data_to_chunked(data: String, chunk_size: usize) {
+        let mut res = String::with_capacity(data.len() + data.len() / chunk_size + 4);
+    
     }
 }
 
@@ -152,4 +195,10 @@ impl RestRequest {
 
         res
     }
+}
+
+/// The way to transfer data over HTTP
+pub (crate) enum TransferEncoding {
+    ContentLength,
+    Chunked,
 }
