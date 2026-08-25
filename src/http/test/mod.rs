@@ -1,4 +1,10 @@
-use super::{Response, HttpStatus, query_string_to_http};
+use super::{
+    Response, 
+    HttpStatus, 
+    query_string_to_http, 
+    Connection, 
+    RestRequest
+};
 
 #[test]
 fn read_char_1() {
@@ -92,4 +98,75 @@ fn query_string_to_http_1() {
     let res = query_string_to_http(&s);
 
     assert_eq!(res, "%74%68%69%73%20%69%73%20%61%20%71%75%65%72%79");
+}
+
+#[test]
+fn rest_request_1() {
+    let file = std::fs::File::options()
+        .read(true)
+        .write(true)
+        .truncate(true)
+        .open("src/http/test/files_used_inside_tests/rest_request_1.txt")
+        .unwrap();
+
+    let mut connection = Connection::new(
+        file, 
+        [("Header-Title".to_string(), "Header-Value".to_string())]
+    );
+
+    let request = RestRequest::GET { 
+        path: "/path/to/get".to_string(), 
+        parameters: Box::new([
+            ("Parameter-Name".to_string(), "Paramater-Value".to_string())
+        ])
+    };
+
+    connection.send_rest_request(request).unwrap();
+}
+
+#[test]
+fn rest_request_2() {
+    let file = std::fs::File::options()
+        .read(true)
+        .write(true)
+        .truncate(true)
+        .open("src/http/test/files_used_inside_tests/rest_request_2.txt")
+        .unwrap();
+
+    let mut connection = Connection::new(
+        file, 
+        [("Header-Title".to_string(), "Header-Value".to_string())]
+    );
+
+    let request = RestRequest::POST { 
+        path: "path/to/post".to_string(), 
+        data: Box::new(b"This is some data I guess\nAnd this is a new line".to_owned())
+    };
+
+    connection.send_rest_request(request).unwrap();
+}
+
+#[test]
+fn rest_request_3() {
+    let file = std::fs::File::options()
+        .read(true)
+        .write(true)
+        .truncate(true)
+        .open("src/http/test/files_used_inside_tests/rest_request_3.txt")
+        .unwrap();
+
+    let mut connection = Connection::new(
+        file, 
+        [
+            ("Header-Title".to_string(), "Header-Value".to_string()),
+            ("Transfer-Encoding".to_string(), "Chunked".to_string())
+        ]
+    );
+
+    let request = RestRequest::POST { 
+        path: "path/to/post".to_string(), 
+        data: Box::new(b"This is some data I guess\nAnd this is a new line".to_owned())
+    };
+
+    connection.send_rest_request(request).unwrap();
 }

@@ -5,6 +5,7 @@ use super::{Error, Response, query_string_to_http};
 
 /// A connection used to send REST API requests and read responses from 
 /// using HTTP 1.1 
+#[derive(Debug, PartialEq)]
 pub struct Connection<T: Read + Write> {
     stream: T,
     headers: HashMap<String, String>
@@ -27,8 +28,19 @@ impl<T: Read + Write> Write for Connection<T> {
 }
 
 impl<T: Read + Write> Connection<T> {
-    /// Sends a REST API request and reads the response
-    pub fn rest_request(&mut self, request: RestRequest) -> Result<Response, Error> {
+    /// Creates a new [`Connection`] with given stream and headers
+    pub fn new<H>(stream: T, headers: H) -> Self
+    where
+        H: Into<HashMap<String, String>>
+    {
+        Self {
+            stream,
+            headers: headers.into()
+        }
+    }
+
+    /// Sends a REST API request
+    pub fn send_rest_request(&mut self, request: RestRequest) -> Result<(), Error> {
         let mut data = String::with_capacity(8192);
 
         // Base_request_string is for example GET /path/to/get
@@ -36,10 +48,9 @@ impl<T: Read + Write> Connection<T> {
         data.push_str(&base_request_string);
         data.push_str(" HTTP/1.1\r\n");
 
-        let request_data = request_data.unwrap_or(String::new());
         let request_data = match self.header_transfer_type() {
             TransferEncoding::Chunked => {
-                String::new()
+                Self::data_to_chunked(request_data, 8192)
             },
             TransferEncoding::ContentLength => {
                 self.headers.insert(
@@ -53,12 +64,15 @@ impl<T: Read + Write> Connection<T> {
 
         let header_string = Self::headers_to_string(&self.headers);
         data.push_str(&header_string);
-        data.push_str(&request_data);
 
-        self.write_all(data.as_bytes())?;
-        let response = Response::read_from_stream(self)?;
-        
-        Ok(response)
+        let mut data = data.into_bytes();
+        data.extend(request_data);
+
+        println!("Here1");
+        self.write_all(&data)?;
+        println!("Here2");
+
+        Ok(())
     }
 
     /// Checks the transfer method. If no transfer method was set, 
@@ -71,7 +85,7 @@ impl<T: Read + Write> Connection<T> {
             self.headers.remove("Content-Length");
             TransferEncoding::Chunked
         } else {
-            self.headers.insert("Content-Lenth".to_string(), "0".to_string());
+            self.headers.insert("Content-Length".to_string(), "0".to_string());
             TransferEncoding::ContentLength
         }
     }
@@ -92,12 +106,37 @@ impl<T: Read + Write> Connection<T> {
     }
 
     /// Turns a data string to chunked data string
-    fn data_to_chunked(data: String, chunk_size: usize) {
-        let mut res = String::with_capacity(data.len() + data.len() / chunk_size + 4);
+    /// 
+    /// # Panics
+    /// 
+    /// Panics if `chunk_size` is 0
+    fn data_to_chunked(data: Box<[u8]>, chunk_size: usize) ->Box<[u8]> {
+        let mut res: Vec<u8> = Vec::with_capacity(
+            data.len() + data.len() / chunk_size + 100
+        );
     
+        for chunk in data.chunks(chunk_size) {
+            let current_chunk_size = chunk.len();
+            let size_formatted = format!("{:0x}", current_chunk_size).into_bytes();
+
+            res.extend(size_formatted);
+            res.extend(b"\r\n");
+            res.extend(chunk);
+            res.extend(b"\r\n");
+        }
+
+        res.extend(b"0\r\n\r\n");
+
+        res.into_boxed_slice()
+    }
+
+    /// Reads a [`Response`] from the connection
+    pub fn read_response(&mut self) -> Result<Response, Error> {
+        Response::read_from_stream(&mut self.stream)
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum RestRequest {
     /// Retreive data
     GET {
@@ -111,19 +150,19 @@ pub enum RestRequest {
     /// Creates a new resource
     POST {
         path: String,
-        data: String
+        data: Box<[u8]>
     },
 
     /// Update or create a resource
     PUT {
         path: String,
-        data: String,
+        data: Box<[u8]>,
     },
 
     /// Partially update a resource
     PATCH {
         path: String,
-        data: String,
+        data: Box<[u8]>,
     },
 
     DELETE {
@@ -132,12 +171,12 @@ pub enum RestRequest {
 }
 
 impl RestRequest {
-    /// Returns a string of how the REST API request would look.
-    /// If there is any data to be sent in the data portion of the HTTP request,
-    /// it would also return that
-    pub (crate) fn string_and_data(self) -> (String, Option<String>) {
+    /// Returns a string of how the REST API request would look
+    /// and eturns the data associated with the request. 
+    /// If there was no associated data, returns an empty array
+    pub (crate) fn string_and_data(self) -> (String, Box<[u8]>) {
         let mut res = String::with_capacity(512);
-        let mut res_data = None;
+        let mut res_data: Box<[u8]> = Box::new([]);
 
         match self {
             Self::DELETE { path } => {
@@ -156,17 +195,17 @@ impl RestRequest {
             Self::PATCH { path, data } => {
                 res.push_str("PATCH ");
                 res.push_str(&path);
-                res_data = Some(data)
+                res_data = data
             },
             Self::POST { path, data } => {
                 res.push_str("POST ");
                 res.push_str(&path);
-                res_data = Some(data)
+                res_data = data
             },
             Self::PUT { path, data } => {
                 res.push_str("PUT ");
                 res.push_str(&path);
-                res_data = Some(data)
+                res_data = data
             }
         }
 

@@ -17,10 +17,6 @@ fn main() -> glib::ExitCode {
         .application_id("com.shitty.scryfall")
         .build();
 
-    let app = gtk::Application::builder()
-        .application_id("com.shitty.scryfall")
-        .build();
-
     app.connect_activate(|app| {
         let window = gtk::ApplicationWindow::builder()
             .application(app)
@@ -38,22 +34,10 @@ fn main() -> glib::ExitCode {
     });
 
     app.run()
-
-    //tls.write_all(
-    //    b"GET /cards/search?q=Asmora HTTP/1.1\r\n\
-    //    Host: api.scryfall.com\r\n\
-    //    User-Agent: rustls-demo/0.1\r\n\
-    //    Accept: application/json\r\n\
-    //    Connection: close\r\n\r\n",
-    //);
-
-    //let response = http::Response::read_from_stream(&mut tls).unwrap();
-    //let fmt = format!("{:#?}", response);
-    //std::fs::write("http_response.txt", fmt.as_bytes()).unwrap();
 }
 
 fn connect_to_api() -> 
-    Result<StreamOwned<ClientConnection, TcpStream>, Box<dyn std::error::Error>> 
+    Result<http::Connection<StreamOwned<ClientConnection, TcpStream>>, Box<dyn std::error::Error>> 
 {
     let mut root_store = RootCertStore::empty();
     root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
@@ -66,9 +50,20 @@ fn connect_to_api() ->
     let config = Arc::new(config);
 
     let conn = ClientConnection::new(config, server_name)?;
-
     let tcp = TcpStream::connect("api.scryfall.com:443")?;
-    Ok(StreamOwned::new(conn, tcp))
+    let stream = StreamOwned::new(conn, tcp);
+
+    let connection = http::Connection::new(
+        stream,
+        [
+            ("Host".to_string(), "api.scryfall.com".to_string()),
+            ("User-Agent".to_string(), "rustls-demo".to_string()),
+            ("Accept".to_string(), "application/json".to_string()),
+            ("Connection".to_string(), "close".to_string())
+        ]
+    );
+
+    Ok(connection)
 }
 
 fn failed_to_connect_window(window: &gtk::ApplicationWindow) {
@@ -76,7 +71,7 @@ fn failed_to_connect_window(window: &gtk::ApplicationWindow) {
     window.set_child(Some(&label));
 }
 
-fn the_real_app<T>(stream: T, window: &gtk::ApplicationWindow) 
+fn the_real_app<T>(stream: http::Connection<T>, window: &gtk::ApplicationWindow) 
     where T: Read + Write + 'static
 {
     let stream = Rc::new(RefCell::new(stream));
@@ -90,7 +85,7 @@ fn the_real_app<T>(stream: T, window: &gtk::ApplicationWindow)
     window.set_child(Some(&rows));
 }
 
-fn search_bar<T>(stream: Rc<RefCell<T>>, window: &ApplicationWindow) -> gtk::Box 
+fn search_bar<T>(stream: Rc<RefCell<http::Connection<T>>>, window: &ApplicationWindow) -> gtk::Box 
     where T: Read + Write + 'static
 {
     let bar_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
@@ -101,11 +96,17 @@ fn search_bar<T>(stream: Rc<RefCell<T>>, window: &ApplicationWindow) -> gtk::Box
 
     let window = window.clone();
     bar_field.connect_activate(move |entry| {
-        let label = gtk::Label::new(None);
-        window.set_child(Some(&label));
         let mut inner_stream = stream.borrow_mut();
-        println!("Searching for \"{}\"", entry.text());
-        // use inner_stream here
+        
+        let request = http::RestRequest::GET { 
+            path: "/cards/search".to_string(), 
+            parameters: Box::new([("q".to_string(), entry.text().to_string())])
+        };
+
+        let _ = inner_stream.send_rest_request(request);
+        let res = inner_stream.read_response();
+        let res = format!("{:#?}", res);
+        std::fs::write("output.txt", res.as_bytes());
     });
 
     bar_box.append(&bar_field);
