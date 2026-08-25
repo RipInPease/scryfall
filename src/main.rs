@@ -26,7 +26,7 @@ fn main() -> glib::ExitCode {
             .build();
 
         match connect_to_api() {
-            Err(_) => failed_to_connect_window(&window),
+            Err(_) => error_window(&window, "Failed to connect to Scryfall.\nFix it, you dumb fuck!"),
             Ok(stream) => the_real_app(stream, &window),
         }
 
@@ -66,8 +66,8 @@ fn connect_to_api() ->
     Ok(connection)
 }
 
-fn failed_to_connect_window(window: &gtk::ApplicationWindow) {
-    let label = gtk::Label::new(Some("Failed to connect to Scryfall.\nFix it, you dumb fuck!"));
+fn error_window(window: &gtk::ApplicationWindow, error_msg: &str) {
+    let label = gtk::Label::new(Some(error_msg));
     window.set_child(Some(&label));
 }
 
@@ -103,10 +103,19 @@ fn search_bar<T>(stream: Rc<RefCell<http::Connection<T>>>, window: &ApplicationW
             parameters: Box::new([("q".to_string(), entry.text().to_string())])
         };
 
-        let _ = inner_stream.send_rest_request(request);
-        let res = inner_stream.read_response();
-        let res = format!("{:#?}", res);
-        std::fs::write("output.txt", res.as_bytes());
+        match inner_stream.send_rest_request(request) {
+            Ok(_) => {
+                match inner_stream.read_response() {
+                    Ok(response) => {},
+                    Err(_) => error_window(&window, 
+                        "Failed to parse response from Scryfall.\nThis might be on me."
+                    ),
+                }
+            },
+            Err(_) => error_window(&window, 
+                "Failed to send request.\nPlease check internet connection"
+            ),
+        }
     });
 
     bar_box.append(&bar_field);

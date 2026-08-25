@@ -68,9 +68,7 @@ impl<T: Read + Write> Connection<T> {
         let mut data = data.into_bytes();
         data.extend(request_data);
 
-        println!("Here1");
         self.write_all(&data)?;
-        println!("Here2");
 
         Ok(())
     }
