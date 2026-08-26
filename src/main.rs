@@ -11,6 +11,8 @@ use gtk::prelude::*;
 use gtk::{glib, Application, ApplicationWindow, Widget};
 
 use scryfall::http;
+use scryfall::deserialize::{self, Deserialize};
+use scryfall::scryfall_objects;
 
 fn main() -> glib::ExitCode {
     let app = gtk::Application::builder()
@@ -59,7 +61,7 @@ fn connect_to_api() ->
             ("Host".to_string(), "api.scryfall.com".to_string()),
             ("User-Agent".to_string(), "rustls-demo".to_string()),
             ("Accept".to_string(), "application/json".to_string()),
-            ("Connection".to_string(), "close".to_string())
+            //("Connection".to_string(), "close".to_string())
         ]
     );
 
@@ -106,9 +108,10 @@ fn search_bar<T>(stream: Rc<RefCell<http::Connection<T>>>, window: &ApplicationW
         match inner_stream.send_rest_request(request) {
             Ok(_) => {
                 match inner_stream.read_response() {
-                    Ok(response) => {},
-                    Err(_) => error_window(&window, 
-                        "Failed to parse response from Scryfall.\nThis might be on me."
+                    Ok(response) => handle_response(&window, response),
+                    Err(_) => error_window(
+                        &window, 
+                        "Failed to read response from Scryfall.\nThis might be on me"
                     ),
                 }
             },
@@ -121,4 +124,15 @@ fn search_bar<T>(stream: Rc<RefCell<http::Connection<T>>>, window: &ApplicationW
     bar_box.append(&bar_field);
 
     bar_box
+}
+
+fn handle_response(window: &ApplicationWindow, response: http::Response) {
+    let s = String::from_utf8(response.data.into()).unwrap();
+    let tokens = deserialize::parse_json_string(s).unwrap();
+    let scryfall_object = 
+        scryfall_objects::ScryfallObject::deserialize(tokens)
+        .unwrap();
+
+    let fmt = format!("{:#?}", scryfall_object);
+    std::fs::write("output.txt", fmt.as_bytes());
 }

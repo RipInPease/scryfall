@@ -5,6 +5,7 @@ use super::*;
 use crate::deserialize::{Deserialize, DesValue, ParseError};
 
 /// Represents a sequence of other [`ScryfallObject`]
+#[derive(Debug, PartialEq)]
 pub struct List {
     pub data        : Box<[ScryfallObject]>,
     pub has_more    : bool,
@@ -23,10 +24,7 @@ impl List {
     fn parse_data_entry(tokens: DesValue) -> Result<ScryfallObject, ParseError> {
         if let DesValue::Object(fields) = &tokens {
             match Self::inner_object(fields)? {
-                "card" => {
-                    let res = Card::deserialize(tokens);
-                    return Ok(ScryfallObject::Card(res?))
-                },
+                "card" => return Ok(ScryfallObject::Card(Card::deserialize(tokens)?)),
                 "error" => return Ok(ScryfallObject::Error(Error::deserialize(tokens)?)),
                 "ruling" => return Ok(ScryfallObject::Ruling(Ruling::deserialize(tokens)?)),
                 "catalog" => return Ok(ScryfallObject::Catalog(Catalog::deserialize(tokens)?)),

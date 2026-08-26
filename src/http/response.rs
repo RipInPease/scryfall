@@ -39,7 +39,7 @@ impl Response {
     /// Tries to read a [`char`] from a reader.
     /// If data was read, but not a valid char returns [`Error::NonUTF8`].
     /// If no data was read returns [`IOErrorKind::UnexpectedEof`]
-    pub (crate) fn read_char<R: Read>(r: &mut R) -> Result<char, Error> {
+    pub fn read_char<R: Read>(r: &mut R) -> Result<char, Error> {
         let mut buf = [0;4];
         r.read_exact(&mut buf[0..1])?;
 
@@ -205,6 +205,10 @@ impl Response {
 
             // This read_line is to read away the potential new line char
             Self::read_line(stream)?;
+            
+            if chunk_size == 0 {
+                break;
+            }
         }
 
         Ok(data.into_boxed_slice())

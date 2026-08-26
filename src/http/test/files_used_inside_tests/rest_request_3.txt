@@ -1,6 +1,6 @@
 POST path/to/post HTTP/1.1
-Transfer-Encoding: Chunked
 Header-Title: Header-Value
+Transfer-Encoding: Chunked
 
 30
 This is some data I guess

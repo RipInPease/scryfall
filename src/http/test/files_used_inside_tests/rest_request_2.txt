@@ -1,6 +1,6 @@
 POST path/to/post HTTP/1.1
-Header-Title: Header-Value
 Content-Length: 48
+Header-Title: Header-Value
 
 This is some data I guess
 And this is a new line
