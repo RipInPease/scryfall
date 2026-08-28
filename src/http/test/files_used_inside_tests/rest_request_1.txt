@@ -1,4 +1,4 @@
 GET /path/to/get?Parameter-Name=%50%61%72%61%6D%61%74%65%72%2D%56%61%6C%75%65 HTTP/1.1
-Content-Length: 0
 Header-Title: Header-Value
+Content-Length: 0
 

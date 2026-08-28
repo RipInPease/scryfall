@@ -72,7 +72,6 @@ impl Response {
     /// 
     /// If data was read, but not a valid char returns [`Error::NonUTF8`].
     /// If no data was read returns an empty string
-    #[cfg(windows)]
     pub (crate) fn read_line<R: Read>(r: &mut R) -> Result<String, Error> {
         let mut s = String::new();
 
@@ -89,44 +88,14 @@ impl Response {
                 }
             };
 
-            if c == '\r' {
+            if c == '\r' && !carriage {
                 carriage = true;
-            } else if c == '\n' && carriage {
+            } else if c == '\n' {
                 return Ok(s)
             } else if carriage {
                 s.push('\r');
                 s.push(c);
                 carriage = false;
-            } else {
-                s.push(c);
-            }
-        }
-    }
-
-    /// Tries to read a line of [`String`] from a reader.
-    /// A line is any piece of text seperated by a newline
-    /// 
-    /// 
-    /// If data was read, but not a valid char returns [`Error::NonUTF8`].
-    /// If no data was read returns an empty string
-    #[cfg(unix)]
-    pub (crate) fn read_line<R: Read>(r: &mut R) -> Result<String, Error> {
-        let mut s = String::new();
-
-        loop {
-            let c = match Self::read_char(r) {
-                Ok(c) => c,
-                Err(e) => {
-                    if e.is_io_error() {
-                        return Ok(s)
-                    } else {
-                        return Err(e)
-                    }
-                }
-            };
-
-            if c == '\n' {
-                return Ok(s)
             } else {
                 s.push(c);
             }
